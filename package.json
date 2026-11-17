@@ -1,0 +1,7 @@
+{
+  "name": "shensi-macos-packaging",
+  "version": "0.0.41",
+  "private": true,
+  "description": "Verified macOS packaging for the published Shensi application",
+  "devDependencies": {"electron-builder": "26.15.3"}
+}
