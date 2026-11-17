@@ -114,4 +114,9 @@ jobs:
             find "macos-artifacts/macos-$arch" -type f \( -name '*.dmg' -o -name '*.zip' \) -exec cp '{}' release-mac/ \;
           done
           (cd release-mac && sha256sum *.dmg *.zip > SHA256SUMS-macos.txt)
-          gh release create v0.0.42 release-mac/* --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --latest=false --title '神思 0.0.42 · macOS' --notes 'Mac 按钮改用跨平台 SVG；内置与自定义主题、独立扩展安装重启和本地资料回读已验证。Dock 图标四角圆角。包含 Apple Silicon / Intel DMG 和 ZIP。仅 ad-hoc 签名，未做 Apple 公证。账号授权与付费生成需在用户 Mac 验证；Windows 专用 H3/SenseVoice 不支持 Mac。Windows 最新版与更新源不变。'
+          if gh release view v0.0.42 --repo "$GITHUB_REPOSITORY" --json isDraft > release-state.json; then
+            jq -e '.isDraft == true' release-state.json
+            gh release upload v0.0.42 release-mac/* --repo "$GITHUB_REPOSITORY"
+          else
+            gh release create v0.0.42 release-mac/* --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --draft --latest=false --title '神思 0.0.42' --notes 'Windows 和 macOS 统一使用对话控制。Mac 修复跨平台图标和主题，Dock 图标四角圆角。独立扩展分平台签名。候选制品，全部验证完成后发布。'
+          fi

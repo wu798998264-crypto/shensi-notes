@@ -32,7 +32,7 @@ await replace('packages/official/external-browsers.mjs','请选择有效的浏�
 const patch=JSON.parse(await readFile(join(work,'doubao.plugin.json')));assert.equal(patch.id,'thirdparty.doubao');assert.equal(patch.version,'0.1.34');
 for(const p of ['apps/desktop/doubao-driver.mjs','packages/thirdparty/doubao-tasks.mjs']){await writeFile(join(app,p),patch.files[p]);changes.push({file:p,sha256:hash(Buffer.from(patch.files[p]))});}
 const overrides=JSON.parse(await readFile(resolve('packaging/macos/overrides.json'),'utf8'));
-for(const entry of overrides){assert(/^(?:packages\/ui\/[a-z-]+\.(?:js|css)|packages\/core\/src\/(?:native-extensions|public-extension-catalog)\.mjs|packages\/thirdparty\/speech-engine\.mjs)$/.test(entry.path));const bytes=await readFile(resolve('packaging/macos/overrides',entry.path));assert.equal(hash(bytes),entry.sha256);await writeFile(join(app,entry.path),bytes);changes.push({file:entry.path,sha256:entry.sha256});}
+for(const entry of overrides){assert(/^(?:packages\/ui\/[a-z-]+\.(?:js|css)|packages\/core\/src\/(?:native-extensions|public-extension-catalog)\.mjs|packages\/official\/(?:catalog|host|selection-edits)\.mjs|packages\/thirdparty\/speech-engine\.mjs)$/.test(entry.path));const bytes=await readFile(resolve('packaging/macos/overrides',entry.path));assert.equal(hash(bytes),entry.sha256);await writeFile(join(app,entry.path),bytes);changes.push({file:entry.path,sha256:entry.sha256});}
 await writeFile(join(app,'apps/desktop/main-macos.mjs'),`import {join} from 'node:path';
 const resources=process.resourcesPath;
 process.env.SHENSI_LIBTV_CLI_PATH ||= join(resources,'cli/libtv');

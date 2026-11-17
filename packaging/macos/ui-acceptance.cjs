@@ -22,5 +22,12 @@ exports.verifyUi=async({js,api,screenshot,evidence,platform})=>{
  }
  await js(`(async()=>{(await import('/preferences.js')).applyPresentation({theme:'light'});document.querySelector('#icon-matrix')?.remove();})()`);
  const count=async()=>{let n=0;for(const pluginId of ['official.document-chat','official.whiteboard-generation','official.conversation-control'])n+=(await api('official/chat/read',{id,pluginId})).conversations.length;return n;};const before=await count();await click('[data-chat-new]');await wait(async()=>await count()>before,'new chat persisted');
- const report={passed:true,platform,themes:rows,newConversationPersisted:true,paidCalls:0};fs.mkdirSync(evidence,{recursive:true});fs.writeFileSync(path.join(evidence,'ui-'+platform+'.json'),JSON.stringify(report,null,2));return report;
+ await click('[data-action="plugin:menu"]');await wait(()=>js('!!document.querySelector("[data-plugin-manager]")'),'plugin menu');
+ assert(await js('!document.querySelector("[data-plugin-settings=\\"official.document-chat\\"],[data-plugin-settings=\\"official.whiteboard-generation\\"]")'));
+ await screenshot('unified-plugin-menu-'+platform+'.png');
+ await click('[data-plugin-settings="official.conversation-control"]');await wait(()=>js('!document.querySelector("#settings-screen").hidden&&document.querySelectorAll("[data-generation-default]").length===4'),'unified settings');
+ await screenshot('unified-control-settings-'+platform+'.png');await click('[data-setting-action="plugin-back"]');
+ assert(await js('!document.querySelector("[data-setting-action=\\"plugin-page:official.document-chat\\"],[data-setting-action=\\"plugin-page:official.whiteboard-generation\\"]")'));
+ await screenshot('unified-core-plugins-'+platform+'.png');await click('[data-setting-action="close"]');
+ const report={passed:true,platform,themes:rows,newConversationPersisted:true,oneChatPlugin:true,unifiedDefaultSettings:true,paidCalls:0};fs.mkdirSync(evidence,{recursive:true});fs.writeFileSync(path.join(evidence,'ui-'+platform+'.json'),JSON.stringify(report,null,2));return report;
 };

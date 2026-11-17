@@ -29,7 +29,7 @@
   },
   {
     "path": "packages/ui/chat-layout.js",
-    "sha256": "0e0c5de155d5ae01b6df50efa6c06242e585b18473fac322ae31b80255f7bc7c"
+    "sha256": "469f93f0df00194b18354c112a6964b2d24913d79c591dc9630e309df9b6a024"
   },
   {
     "path": "packages/ui/selection-edit.js",
@@ -58,5 +58,37 @@
   {
     "path": "packages/thirdparty/speech-engine.mjs",
     "sha256": "11bce48b22999e38d02632eec8aca196a8025f1dfcefbb4417fb669478965a92"
+  },
+  {
+    "path": "packages/official/catalog.mjs",
+    "sha256": "67f0fcd133aa6c5349157acbc9c6feb74b8b4d35209a44d95b2585b0f61ffa00"
+  },
+  {
+    "path": "packages/official/host.mjs",
+    "sha256": "fb37815c3b25e082907181ad3a9d62db3ccaeaa04f1498fa9ae3cd46fa37e1cc"
+  },
+  {
+    "path": "packages/official/selection-edits.mjs",
+    "sha256": "9a2db9daa246ed9a776a8562f3f92d2abb29e680b60bdf374ae6aa917814fe0f"
+  },
+  {
+    "path": "packages/ui/plugin-presentation.js",
+    "sha256": "2850825e95944a08e9660a4615b36fce3d7cff8f31c13b6b54554382d9847351"
+  },
+  {
+    "path": "packages/ui/settings.js",
+    "sha256": "98ea488c2294c54907ee9130756ae32980d1f897b577fa02736d58c55dedd072"
+  },
+  {
+    "path": "packages/ui/extensions.js",
+    "sha256": "dd01b8bdcc82cd7ccd11e0bba07ce491aa44fd45447a25b5c45eccc15c81b003"
+  },
+  {
+    "path": "packages/ui/official-ui.js",
+    "sha256": "3c6e0f9836317c03b29549b54b68fd1ee7aacbf9827ec58df0bb6e4efda0effd"
+  },
+  {
+    "path": "packages/ui/tutorial.js",
+    "sha256": "a92fa631760116f3ab80f8c68844388a8b7b481a8fd80ca229fa7fc09fa19ba0"
   }
 ]
