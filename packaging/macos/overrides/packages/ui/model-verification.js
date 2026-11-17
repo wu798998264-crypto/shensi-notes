@@ -9,7 +9,7 @@ function rememberVerified(id,result){
 }
 export function needsCredentialVerification(job){
  const code=String(job?.providerErrorCode||job?.code||'');
- if(code)return /(?:^|_)(?:AUTH_REQUIRED|AUTH_SOURCE_REQUIRED|UNAUTHORIZED|NOT_AUTHENTICATED|LOGIN_REQUIRED|HUMAN_VERIFICATION_REQUIRED|PROFILE_UNVERIFIED|CANVAS_PROFILE_REQUIRED|TOKEN_EXPIRED|MISSING_CREDENTIALS|ACCOUNT_ID_MISSING)$/.test(code)||/^CREDENTIAL(?:S)?_(?:INVALID|EXPIRED|MISSING|STORE_LOCKED|DECRYPT_FAILED)$/.test(code);
+ if(code)return /(?:^|_)(?:AUTH_REQUIRED|AUTH_SOURCE_REQUIRED|UNAUTHORIZED|NOT_AUTHENTICATED|LOGIN_REQUIRED|HUMAN_VERIFICATION_REQUIRED|PROFILE_UNVERIFIED|CANVAS_PROFILE_REQUIRED|TOKEN_EXPIRED|MISSING_CREDENTIALS|ACCOUNT_ID_MISSING)$/.test(code)||/^CREDENTIAL(?:S)?_(?:INVALID|EXPIRED|MISSING)$/.test(code);
  return /(?:尚未|未完成|没有)(?:登录|授权|核验)|(?:登录|凭据|授权)(?:已)?(?:失效|过期)|请先(?:登录|核验|授权)/.test([job?.failureReason,job?.error,job?.message].filter(Boolean).join(' '));
 }
 export function verificationReminderNeeded(profileId,failureAt,accountId){
@@ -54,6 +54,7 @@ export async function openModelVerification(context,profile,{action='verify',onB
    if(next==='verify'&&needsCredentialVerification(error))result={ok:false,needsCredentialPage:true,message:error.message};else throw error;
   }
   if(result.needsBinding){
+   version=result.profileUpdatedAt||version;
    const {profiles=[]}=await context.api('/api/official/browser-profiles/read',{});
    const answer=await context.modal('选择原账号的浏览器配置','<p>此配置没有保存账号来源。请选择已登录原账号的浏览器配置；不会按名称猜测账号。</p><label>浏览器配置<select name="browserProfileId" required><option value="">请选择</option>'+profiles.filter(p=>!p.deletedAt).map(p=>'<option value="'+h(p.id)+'">'+h(p.name)+'</option>').join('')+'</select></label>',[['取消','cancel'],['核验','verify']]);
    if(answer.value!=='verify')return result;

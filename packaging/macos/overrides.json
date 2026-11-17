@@ -141,7 +141,7 @@
   },
   {
     "path": "packages/ui/model-verification.js",
-    "sha256": "19a7ce9da981d7dbda9829d1077eb29acb6a0ebaaf82919e212fbafc288477f9"
+    "sha256": "7f043a8ed8e0f3df7d73ad1804451715c016330b6897ba66517ea5ed81c2a994"
   },
   {
     "path": "packages/official/models.mjs",
