@@ -25,6 +25,7 @@ async function verify(app,arch){assert.equal(process.platform,'darwin');assert.e
   const screenshot=await cdp('Page.captureScreenshot',{format:'png'});fs.writeFileSync(path.resolve('build/mac-ui-'+arch+'.png'),Buffer.from(screenshot.data,'base64'));
   const book=await api('library',{name:'macOS 删除验收'}),bookId=book.id||book.library?.id;assert(bookId);const loaded=await api('state?id='+bookId);await api('library/archive',{id:bookId,expectedStateStamp:loaded.stateStamp});assert((await api('library/trash')).entries.some(e=>e.id===bookId||e.notebookId===bookId||e.originalId===bookId));
   const archived=(await api('library/trash')).entries.find(e=>e.id===bookId);assert(archived?.trashId);await api('library/trash/restore',{trashId:archived.trashId});assert((await api('bootstrap')).libraries.some(e=>e.id===bookId));assert((await api('state?id='+bookId)).state.documents);
+  run('codesign',['--verify','--deep','--strict','--verbose=2',app]);
   const report={passed:true,arch,version:'0.0.41',signed:true,javaBridge:true,ffmpeg:true,node:true,python:true,canvasCli:true,libtvCli:true,installedDesktopStartup:true,desktopUiLoaded:true,documentSaveReadback:true,notebookArchive:true,notebookRestore:true,pluginCatalog:true,paidGenerations:0};fs.writeFileSync(path.resolve('build/mac-verification-'+arch+'.json'),JSON.stringify(report,null,2));console.log(JSON.stringify(report));
  }finally{socket?.close();try{process.kill(-child.pid,'SIGTERM');}catch{}}
 }
