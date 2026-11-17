@@ -13,14 +13,14 @@
     {
       "platform": "darwin",
       "arch": "arm64",
-      "url": "https://github.com/wu798998264-crypto/shensi-notes/releases/download/untagged-f85f946505acd49c1a84/Shensi-0.0.42-arm64.dmg",
+      "url": "https://github.com/wu798998264-crypto/shensi-notes/releases/download/v0.0.42/Shensi-0.0.42-arm64.dmg",
       "sha256": "3a62465db0c011d439317aa229da68c78b450eda6fb734d144d7813d3b2f39ec",
       "sizeBytes": 494532230
     },
     {
       "platform": "darwin",
       "arch": "x64",
-      "url": "https://github.com/wu798998264-crypto/shensi-notes/releases/download/untagged-f85f946505acd49c1a84/Shensi-0.0.42-x64.dmg",
+      "url": "https://github.com/wu798998264-crypto/shensi-notes/releases/download/v0.0.42/Shensi-0.0.42-x64.dmg",
       "sha256": "2b094e847fd30e49fca3dfa37c82bcc5a1e46f6e7fea24f185a79596737424c9",
       "sizeBytes": 526745113
     }
