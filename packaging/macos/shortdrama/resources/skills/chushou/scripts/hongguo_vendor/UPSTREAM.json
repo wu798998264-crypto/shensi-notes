@@ -1,0 +1,22 @@
+{
+  "name": "guoapp",
+  "version": "2.0.1+113",
+  "moduleVersion": "1.0.3",
+  "homepage": "https://github.com/Xanerix/guoapp",
+  "commit": "4c7aab6a87a12e1aaf6b1d08fa31d3844148650c",
+  "license": "GPL-3.0-only",
+  "source": "User-supplied Windows ZIP: userdata/modules/hongguo/main.js and manifest.json only; user stores excluded",
+  "archiveSha256": "d63d768efef183abfcecbdf40cc434d7f56d8fd3dfc0c3d27f7b0be699fb29a2",
+  "macArchiveSha256": "065f97c12c3e7cbcc54ed295400382125fe1ccf34f7335975a890a219052743f",
+  "originalSourceHashes": {
+    "main.js": "3ed3be89dffa6f710987e59a95a8e4f60345ba92c6033fe77f44bd1430d48760"
+  },
+  "changes": [
+    "Node standard-library host instead of Flutter/Go; strict Base64 and lossless integer parsing match original host",
+    "Expose video-only search; listening-book search stays outside short-drama scope",
+    "No device rotation after empty or rejected responses; HTTP authorization/rate limits stop immediately",
+    "Original module APIs, parameters, media selection and identity checks retained",
+    "Private local anonymous device cache; no imported cookies, accounts, favorite/history data",
+    "playback.cjs retains only previously validated local MP4 preparation from fruitknife 2.0.0, commit e8e350787aa2ac63cdab9febaa85837010a5052a; no old network code"
+  ]
+}

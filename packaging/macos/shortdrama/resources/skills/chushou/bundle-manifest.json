@@ -1,0 +1,303 @@
+{
+  "schema": 2,
+  "skill": "chushou",
+  "capturedAt": "2026-11-17",
+  "source": "public execution-only skill; no personal creative rules or runtime data",
+  "mainSha256": "327e6c1aa78371b7ddde6852e4ce66119a1cf0decf17d3b68206a189c410a228",
+  "revision": "5ea42f6c84cc31eef0443eb5016bd8ad8769d3a031e273531fe3d9d53f5ae51e",
+  "files": [
+    {
+      "path": "LICENSE",
+      "bytes": 1075,
+      "sha256": "ffd594aeb34cea6843d99eb0e9cba4f18b1a39e860d10d6284e2c1b06689352d"
+    },
+    {
+      "path": "SHENSI-HOST.md",
+      "bytes": 526,
+      "sha256": "13f335cbba18aeb2a267def8d144b9a7fc6d81a1614ea7aff85a9dd344e2bb08"
+    },
+    {
+      "path": "SKILL.md",
+      "bytes": 7157,
+      "sha256": "327e6c1aa78371b7ddde6852e4ce66119a1cf0decf17d3b68206a189c410a228"
+    },
+    {
+      "path": "references/audio-transcription.md",
+      "bytes": 1003,
+      "sha256": "47e645c90bb66ec3a48ff96aa7a1b93ce4b2c702196c515a3646a209c2db252a"
+    },
+    {
+      "path": "references/binding.md",
+      "bytes": 1933,
+      "sha256": "df27259d0864af01c9e19d41c568b684496e5757e66940b1d24833707f672e6f"
+    },
+    {
+      "path": "references/downloads.md",
+      "bytes": 1251,
+      "sha256": "30210a3d6fa960f8a785f1b0098057e7f960624c5a8b49e4995dae858b4566d2"
+    },
+    {
+      "path": "references/hongguo-download.md",
+      "bytes": 2468,
+      "sha256": "3500a9a77967e547c0cf041617309fbbf3a4556871696f9f1c9858a8f8eb43ba"
+    },
+    {
+      "path": "references/host-tools.md",
+      "bytes": 1642,
+      "sha256": "065f38f365287cb15ef51aa6db57a3051633b29f7a976acd1321cc6ee9f37d65"
+    },
+    {
+      "path": "references/jimeng-canvas-cli.md",
+      "bytes": 2529,
+      "sha256": "48eedb6e6292058d03218f31bf7ee168416ba800d99fe9269bde0a6c94c6f41c"
+    },
+    {
+      "path": "references/key-event-ledger.schema.json",
+      "bytes": 12030,
+      "sha256": "e07bc4cf5ac07ef9228f9ec474771b38474823a61b0b780bb2e9a46347c3e5f1"
+    },
+    {
+      "path": "references/local-asr-licenses.txt",
+      "bytes": 18203,
+      "sha256": "a48ff7fed1a5834950b1aeeb3b2e5f2ef3afe6a7b33545d0c0c80e166069d81e"
+    },
+    {
+      "path": "references/local-transcription.md",
+      "bytes": 2053,
+      "sha256": "ace56997d3cb62ecd25039dd19c94c06ae4b4d2d84723c539166e031132cbc9c"
+    },
+    {
+      "path": "references/media-requirements.txt",
+      "bytes": 74,
+      "sha256": "e099d26140e39ff6bca6f17a634293bb1774fad3ee5426c2acfbe147fafe7448"
+    },
+    {
+      "path": "references/novel-capture.md",
+      "bytes": 5120,
+      "sha256": "adbd82d213b1b7924804807544d7acfa55c08e9527acb05b8054bcdad3a7bb22"
+    },
+    {
+      "path": "references/transcript-proofreading.md",
+      "bytes": 7840,
+      "sha256": "30549c6008b1c527f1ca0eda2f8fd7e1e5ef1e8018bcdb0dfe94c866e2f934b2"
+    },
+    {
+      "path": "references/video-download.md",
+      "bytes": 2046,
+      "sha256": "deda0cd303196ab731780e2a6c541b4454403ed777f898f608b1646d6afa377f"
+    },
+    {
+      "path": "references/video-inspection.md",
+      "bytes": 7820,
+      "sha256": "866307a32b916caddf77d5d002fc5563f2747d31be9fe61da59a7e72c825f9b8"
+    },
+    {
+      "path": "references/video-platforms.json",
+      "bytes": 4082,
+      "sha256": "f2e4787f5dd7bce16e4d443f159aacd6f895c754ec7ef615c387ec95d10b46c8"
+    },
+    {
+      "path": "references/website-transcription.md",
+      "bytes": 6150,
+      "sha256": "2c5b2e9ed9e8ee68ca0b947cddb06a05e2d839c01d3094d81885219ebc9b4d93"
+    },
+    {
+      "path": "references/workflow-execution.md",
+      "bytes": 5565,
+      "sha256": "4c39d8063a095c3c56116a47cf16c43af470c8470d4af8fc1984f2f1d51980e7"
+    },
+    {
+      "path": "scripts/build_drama_documents.py",
+      "bytes": 25467,
+      "sha256": "4a57e191179a91d36b4819eef40c7465508e4a7ac40e24dedd25ce8ba246f537"
+    },
+    {
+      "path": "scripts/canvas_bundle.py",
+      "bytes": 19064,
+      "sha256": "70c1a33ff167d751567bf4118434417ae58e8a08a621cb846d7cced39ee24f90"
+    },
+    {
+      "path": "scripts/capture_novel.mjs",
+      "bytes": 13841,
+      "sha256": "c2b9e21a149613d4924d3d262153676fa4bea8694b253e5c8363074d3b74fd88"
+    },
+    {
+      "path": "scripts/chushou_runtime.py",
+      "bytes": 6243,
+      "sha256": "bb6dd6a56d58dffbda1cd67aa7f482f80323f1814f9c9d341ebb06ac6a7ffc8c"
+    },
+    {
+      "path": "scripts/compile_drama_transcripts.py",
+      "bytes": 13292,
+      "sha256": "0bd1570a06216ab0ebb9b7a4c57922cae1ba2f3e35f3b718131865a54c7ca012"
+    },
+    {
+      "path": "scripts/download_drama.py",
+      "bytes": 12848,
+      "sha256": "6a6e270186d9b103a507c47b576c88d991ca857a53ebdbaa8e700db8be4975ad"
+    },
+    {
+      "path": "scripts/download_video.py",
+      "bytes": 27157,
+      "sha256": "933ceadf31131ca310da772bea1ebc1815a4a42ffe981ec1d04c09df27ef0e9c"
+    },
+    {
+      "path": "scripts/hongguo_provider.py",
+      "bytes": 5158,
+      "sha256": "e3ff74875b717438c6fa74985e150b8f620432661a6c8d92a88eb58c0d07df7d"
+    },
+    {
+      "path": "scripts/hongguo_vendor/LICENSE",
+      "bytes": 35149,
+      "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+    },
+    {
+      "path": "scripts/hongguo_vendor/UPSTREAM.json",
+      "bytes": 1312,
+      "sha256": "acc3f0249ccb42e4e8f55937174a9ea4849cced1cf552deb5689a20962bba568"
+    },
+    {
+      "path": "scripts/hongguo_vendor/cli.cjs",
+      "bytes": 2161,
+      "sha256": "b02565e1c8472cbcbf2f22082da19ff73e3454a5dd0a5c6a49eafda614fc185b"
+    },
+    {
+      "path": "scripts/hongguo_vendor/guoapp-host.cjs",
+      "bytes": 5664,
+      "sha256": "369a31d55d70f71363e6525ccafe495f774b11f65d23aa4785f1eb74e4173e72"
+    },
+    {
+      "path": "scripts/hongguo_vendor/guoapp-http.cjs",
+      "bytes": 2349,
+      "sha256": "69a2dd7eec7de601c6f79a15b27f67d5624ec2a8650f68c44177fdbeeb4ae90c"
+    },
+    {
+      "path": "scripts/hongguo_vendor/guoapp.js",
+      "bytes": 144399,
+      "sha256": "3b76aa8e5e4d419a70b81a828719257a3f6442aee92ef0ca35a854c5b590e7c9"
+    },
+    {
+      "path": "scripts/hongguo_vendor/package.json",
+      "bytes": 140,
+      "sha256": "18bcb0011be7a7f5b88f72481c3d431ead5129febf6b11703cc8a90cbb88f646"
+    },
+    {
+      "path": "scripts/hongguo_vendor/playback.cjs",
+      "bytes": 16798,
+      "sha256": "8deaf90eb45ffa61d684a1b845c2f3da768d74ad12c60b6f1e7dd0102752e459"
+    },
+    {
+      "path": "scripts/host_entry.py",
+      "bytes": 2105,
+      "sha256": "e3aeaef63dfe7b7307ea055706147304302657702d6eabed5647ef81fbde3aa2"
+    },
+    {
+      "path": "scripts/inspect_motion.py",
+      "bytes": 3790,
+      "sha256": "a82ac68a2fb270dfd24a5292654443d32912af8a80083e0eae8598c6772e8fb7"
+    },
+    {
+      "path": "scripts/inspect_video.py",
+      "bytes": 13243,
+      "sha256": "1696a3159568869fa4e7695ccbda7c1317e4cb83dec7bb4dbe6fc7d2a8ed6603"
+    },
+    {
+      "path": "scripts/install_local_asr.py",
+      "bytes": 2245,
+      "sha256": "a807ddd5597e2c7668f35cfdc261871aebc9cf8d6a18ba1187c2f0c2a6f9a43c"
+    },
+    {
+      "path": "scripts/migrate_shensi_notebook.py",
+      "bytes": 25374,
+      "sha256": "4e4b1b0a04addbb2429e40b6555ff07bdc971dbb3684c62674116671aab039e0"
+    },
+    {
+      "path": "scripts/novel-source/pinned-public-fetch.mjs",
+      "bytes": 4920,
+      "sha256": "b963803ac4fb5ab8a96f5f5eecb92ab36bc4e9210302fc214abd7018ec6e0d83"
+    },
+    {
+      "path": "scripts/novel-source/quanben-book-source.mjs",
+      "bytes": 26142,
+      "sha256": "c6cadce00899dce51eab528ea4c5ad0cd1d161bdb48aa59deb16b62ea9865056"
+    },
+    {
+      "path": "scripts/restore_video_result_drafts.py",
+      "bytes": 9740,
+      "sha256": "f7f172faa94e9294744a6549d7a7348575aa20a1446322637139e24d0354190b"
+    },
+    {
+      "path": "scripts/shensi_bridge.py",
+      "bytes": 27315,
+      "sha256": "8faf593b0e419a8c320c88b169187e37910c62b9f099694489be65324996e20d"
+    },
+    {
+      "path": "scripts/shensi_canvas_probe.py",
+      "bytes": 10027,
+      "sha256": "1d5b5c9c485dfd9b68d16823eff7440b3a29f17bc4487c09afe703f81aa1c597"
+    },
+    {
+      "path": "scripts/shensi_transcription.py",
+      "bytes": 14107,
+      "sha256": "df531382858d36455b27949c13edf892acee843296797360ea29a04ca80dc9d7"
+    },
+    {
+      "path": "scripts/sync_completed_video_results.py",
+      "bytes": 17638,
+      "sha256": "f07caa2720b35f376200034171c82018622555c83b8c30751fc0c1100bd71595"
+    },
+    {
+      "path": "scripts/test_build_drama_documents.py",
+      "bytes": 24697,
+      "sha256": "c774432f79645c20387a19eccfced09b609e56d63edefaf171746cc23a1fe7d6"
+    },
+    {
+      "path": "scripts/test_canvas_bundle.py",
+      "bytes": 18981,
+      "sha256": "c5f425446c92c5119baf9c16331379bd4fe3ce52222c55797e6e74885e616995"
+    },
+    {
+      "path": "scripts/test_compile_drama_transcripts.py",
+      "bytes": 7836,
+      "sha256": "3063c603060ac93c544ad13d0c642ea46267abaeadfb5dbfc07df7ddecdd7360"
+    },
+    {
+      "path": "scripts/test_shensi_canvas_probe.py",
+      "bytes": 8454,
+      "sha256": "10197162526bb32430fe16d9fbda8ec5c2eb1bfb1e79e30b557bc9cef84ff294"
+    },
+    {
+      "path": "scripts/test_shensi_transcription.py",
+      "bytes": 7765,
+      "sha256": "ec7f541eaf3023177911a2b5823ca8d3e9be42838f9232c2d9095af7dee8a486"
+    },
+    {
+      "path": "scripts/test_text_console.py",
+      "bytes": 12262,
+      "sha256": "ed89338eee1fdcd9af96ed47f8a4e10061f4090e30b894301b135d10c15c5834"
+    },
+    {
+      "path": "scripts/tests/test-capture-novel.mjs",
+      "bytes": 14768,
+      "sha256": "e832ed31f5c13586a09e15d612be5fb5842868bbfb738ecfd92f09e28668b7fa"
+    },
+    {
+      "path": "scripts/text_console.py",
+      "bytes": 24415,
+      "sha256": "f4ea29e3ee7041d60fdcb2bf6a9e63bf7bf1c37ea07d61349e69a444757cfa2b"
+    }
+  ],
+  "excluded": [
+    "runtime",
+    "__pycache__",
+    "outputs",
+    "downloads",
+    "personal prompt/script rules",
+    "browser profiles",
+    "credentials"
+  ],
+  "hostAdaptation": {
+    "path": "SHENSI-HOST.md",
+    "sha256": "13f335cbba18aeb2a267def8d144b9a7fc6d81a1614ea7aff85a9dd344e2bb08"
+  }
+}

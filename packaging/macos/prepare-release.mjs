@@ -10,7 +10,7 @@ assert(isAbsolute(relative(source,app))||relative(source,app).startsWith('..'+se
 await mkdir(app,{recursive:false});
 for(const name of ['apps','packages','resources','package.json','release-build.json'])await cp(join(source,name),join(app,name),{recursive:true,errorOnExist:true,force:false});
 const pkg=JSON.parse(await readFile(join(app,'package.json')));assert.equal(pkg.version,'0.0.41');assert.equal(pkg.name,'shensi-notes');
-pkg.version='0.0.42';
+pkg.version='0.0.43';
 // These are retired Windows integrations, never macOS executables.
 for(const name of ['resources/thirdparty','resources/yunx/runtime/runtime','resources/dreamina-canvas/dreamina-canvas.exe'])await rm(join(app,name),{recursive:true,force:true});
 async function prune(folder){for(const entry of await readdir(folder,{withFileTypes:true})){const p=join(folder,entry.name);assert(!entry.isSymbolicLink(),'Unexpected link in public source');if(entry.isDirectory())await prune(p);else if(/\.(?:exe|dll|pyd|ps1|bat|cmd|cs)$/i.test(entry.name))await rm(p);}}
@@ -31,6 +31,9 @@ await replace('packages/official/external-browsers.mjs',"extname(executable).toL
 await replace('packages/official/external-browsers.mjs','请选择有效的浏览器 .exe 程序','请选择有效的浏览器应用');
 const patch=JSON.parse(await readFile(join(work,'doubao.plugin.json')));assert.equal(patch.id,'thirdparty.doubao');assert.equal(patch.version,'0.1.34');
 for(const p of ['apps/desktop/doubao-driver.mjs','packages/thirdparty/doubao-tasks.mjs']){await writeFile(join(app,p),patch.files[p]);changes.push({file:p,sha256:hash(Buffer.from(patch.files[p]))});}
+const dramaFiles=JSON.parse(await readFile(resolve('packaging/macos/shortdrama/index.json'),'utf8'));
+for(const row of dramaFiles){assert(/^(?:resources\/skills\/chushou\/(?:SKILL.md|bundle-manifest.json|references\/hongguo-download.md|scripts\/(?:download_drama.py|hongguo_provider.py|hongguo_vendor\/(?:guoapp.js|guoapp-host.cjs|guoapp-http.cjs|playback.cjs|cli.cjs|UPSTREAM.json|package.json|LICENSE)))|packages\/shared\/chushou-snapshot.js)$/.test(row.path));const bytes=await readFile(resolve('packaging/macos/shortdrama',row.path));assert.equal(hash(bytes),row.sha256);await writeFile(join(app,row.path),bytes);changes.push({file:row.path,sha256:row.sha256});}
+for(const name of ['hongguo.js','http.cjs','xgorgon.js','sixgod'])await rm(join(app,'resources/skills/chushou/scripts/hongguo_vendor',name),{recursive:true,force:true});
 const overrides=JSON.parse(await readFile(resolve('packaging/macos/overrides.json'),'utf8'));
 for(const entry of overrides){assert(/^(?:packages\/ui\/[a-z-]+\.(?:js|css)|packages\/core\/src\/(?:native-extensions|public-extension-catalog)\.mjs|packages\/official\/(?:catalog|host|selection-edits)\.mjs|packages\/thirdparty\/speech-engine\.mjs)$/.test(entry.path));const bytes=await readFile(resolve('packaging/macos/overrides',entry.path));assert.equal(hash(bytes),entry.sha256);await writeFile(join(app,entry.path),bytes);changes.push({file:entry.path,sha256:entry.sha256});}
 await writeFile(join(app,'apps/desktop/main-macos.mjs'),`import {join} from 'node:path';

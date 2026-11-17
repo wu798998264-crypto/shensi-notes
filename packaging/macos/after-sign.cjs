@@ -26,7 +26,7 @@ async function launch(app,env){
  }catch(error){await close();throw error;}
 }
 async function verify(app,arch){
- assert.equal(process.platform,'darwin');assert.equal(process.arch,arch);app=path.resolve(app);const version='0.0.42',res=path.join(app,'Contents/Resources'),root=path.join(res,'app'),yunx=path.join(root,'resources/yunx'),evidence=path.resolve('build/ui-'+arch);fs.mkdirSync(evidence,{recursive:true});
+ assert.equal(process.platform,'darwin');assert.equal(process.arch,arch);app=path.resolve(app);const version='0.0.43',res=path.join(app,'Contents/Resources'),root=path.join(res,'app'),yunx=path.join(root,'resources/yunx'),evidence=path.resolve('build/ui-'+arch);fs.mkdirSync(evidence,{recursive:true});
  assert.equal(JSON.parse(fs.readFileSync(path.join(root,'package.json'))).version,version);assert.deepEqual(JSON.parse(fs.readFileSync(path.join(yunx,'runtime-manifest.json'))),manifest(yunx));run('codesign',['--verify','--deep','--strict','--verbose=2',app]);
  const java=path.join(yunx,'runtime/runtime/bin/java'),bridge=JSON.parse(run(java,['-Djava.awt.headless=true','-cp',path.join(yunx,'classes')+':'+path.join(yunx,'runtime/app/*'),'YunxBridge'],{input:'{"action":"version"}\n'}).trim());assert(bridge.ok);assert.equal(bridge.data.version,'1.3.4');
  run(path.join(res,'node/node'),['--version']);for(const t of ['ffmpeg','ffprobe'])run(path.join(res,'ffmpeg',t),['-version']);run(path.join(res,'cli/dreamina-canvas'),['version']);run(path.join(res,'cli/libtv'),['--version']);

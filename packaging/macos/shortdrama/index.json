@@ -1,0 +1,58 @@
+[
+  {
+    "path": "resources/skills/chushou/SKILL.md",
+    "sha256": "327e6c1aa78371b7ddde6852e4ce66119a1cf0decf17d3b68206a189c410a228"
+  },
+  {
+    "path": "resources/skills/chushou/bundle-manifest.json",
+    "sha256": "00f2d84c4e56f0a00a129bbe558364872c8ee80dbbebbce0c77b793a1eedb37a"
+  },
+  {
+    "path": "resources/skills/chushou/references/hongguo-download.md",
+    "sha256": "3500a9a77967e547c0cf041617309fbbf3a4556871696f9f1c9858a8f8eb43ba"
+  },
+  {
+    "path": "resources/skills/chushou/scripts/download_drama.py",
+    "sha256": "6a6e270186d9b103a507c47b576c88d991ca857a53ebdbaa8e700db8be4975ad"
+  },
+  {
+    "path": "resources/skills/chushou/scripts/hongguo_provider.py",
+    "sha256": "e3ff74875b717438c6fa74985e150b8f620432661a6c8d92a88eb58c0d07df7d"
+  },
+  {
+    "path": "packages/shared/chushou-snapshot.js",
+    "sha256": "4fc03c19ead659d785a5dd5ad4319819c5c7bd3b4411e7e4e7af32461158a45a"
+  },
+  {
+    "path": "resources/skills/chushou/scripts/hongguo_vendor/cli.cjs",
+    "sha256": "b02565e1c8472cbcbf2f22082da19ff73e3454a5dd0a5c6a49eafda614fc185b"
+  },
+  {
+    "path": "resources/skills/chushou/scripts/hongguo_vendor/guoapp.js",
+    "sha256": "3b76aa8e5e4d419a70b81a828719257a3f6442aee92ef0ca35a854c5b590e7c9"
+  },
+  {
+    "path": "resources/skills/chushou/scripts/hongguo_vendor/guoapp-host.cjs",
+    "sha256": "369a31d55d70f71363e6525ccafe495f774b11f65d23aa4785f1eb74e4173e72"
+  },
+  {
+    "path": "resources/skills/chushou/scripts/hongguo_vendor/guoapp-http.cjs",
+    "sha256": "69a2dd7eec7de601c6f79a15b27f67d5624ec2a8650f68c44177fdbeeb4ae90c"
+  },
+  {
+    "path": "resources/skills/chushou/scripts/hongguo_vendor/playback.cjs",
+    "sha256": "8deaf90eb45ffa61d684a1b845c2f3da768d74ad12c60b6f1e7dd0102752e459"
+  },
+  {
+    "path": "resources/skills/chushou/scripts/hongguo_vendor/UPSTREAM.json",
+    "sha256": "acc3f0249ccb42e4e8f55937174a9ea4849cced1cf552deb5689a20962bba568"
+  },
+  {
+    "path": "resources/skills/chushou/scripts/hongguo_vendor/package.json",
+    "sha256": "18bcb0011be7a7f5b88f72481c3d431ead5129febf6b11703cc8a90cbb88f646"
+  },
+  {
+    "path": "resources/skills/chushou/scripts/hongguo_vendor/LICENSE",
+    "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+  }
+]

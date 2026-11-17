@@ -1,11 +1,11 @@
-name: Build Shensi 0.0.42 for macOS
-run-name: Shensi 0.0.42 macOS packages
+name: Build Shensi 0.0.43 for macOS
+run-name: Shensi 0.0.43 macOS packages
 on:
   workflow_dispatch:
 permissions:
   contents: read
 concurrency:
-  group: shensi-macos-0.0.42
+  group: shensi-macos-0.0.43
   cancel-in-progress: false
 jobs:
   build:
@@ -76,7 +76,14 @@ jobs:
           app="$(find "$WORK/dist-$ARCH" -maxdepth 2 -name '*.app' -print -quit)"
           test -n "$app"
           node packaging/macos/after-sign.cjs "$app" "$ARCH"
-          hdiutil verify "$WORK/dist-$ARCH/Shensi-0.0.42-$ARCH.dmg"
+          hdiutil verify "$WORK/dist-$ARCH/Shensi-0.0.43-$ARCH.dmg"
+      - name: Verify real short-drama download and whiteboard handoff
+        shell: bash
+        run: |
+          set -euo pipefail
+          app="$(find "$WORK/dist-$ARCH" -maxdepth 2 -name '*.app' -print -quit)"
+          node scripts/verify-guoapp-real.mjs "$app/Contents/Resources/app" "build/guoapp-$ARCH" "$app/Contents/Resources"
+          codesign --verify --deep --strict "$app"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -89,6 +96,7 @@ jobs:
             build/ui-*/**/*
             build/mac/dock-icon.png
             build/macos-release/adaptations.json
+            build/guoapp-*/*.json
           if-no-files-found: warn
   publish:
     name: Publish verified macOS downloads
@@ -114,9 +122,9 @@ jobs:
             find "macos-artifacts/macos-$arch" -type f \( -name '*.dmg' -o -name '*.zip' \) -exec cp '{}' release-mac/ \;
           done
           (cd release-mac && sha256sum *.dmg *.zip > SHA256SUMS-macos.txt)
-          if gh release view v0.0.42 --repo "$GITHUB_REPOSITORY" --json isDraft > release-state.json; then
+          if gh release view v0.0.43 --repo "$GITHUB_REPOSITORY" --json isDraft > release-state.json; then
             jq -e '.isDraft == true' release-state.json
-            gh release upload v0.0.42 release-mac/* --repo "$GITHUB_REPOSITORY"
+            gh release upload v0.0.43 release-mac/* --repo "$GITHUB_REPOSITORY"
           else
-            gh release create v0.0.42 release-mac/* --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --draft --latest=false --title '神思 0.0.42' --notes 'Windows 和 macOS 统一使用对话控制。Mac 修复跨平台图标和主题，Dock 图标四角圆角。独立扩展分平台签名。候选制品，全部验证完成后发布。'
+            gh release create v0.0.43 release-mac/* --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --draft --latest=false --title '神思 0.0.43' --notes '触手短剧下载更新为 guoapp 2.0.1 的公开模块适配，保留分集选择、完整解码、断点恢复及白板回写。两种 Mac 架构必须完成真实下载验收。候选制品，全部验证完成后发布。'
           fi
