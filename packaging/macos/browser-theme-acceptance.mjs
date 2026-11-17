@@ -21,7 +21,13 @@ export async function verifyBrowserThemes({owner,run,wait,evidence,nativeTheme})
  })()`);
  try{
   for(const theme of ['light','dark','stone','mist','ember','ink','custom-browser-violet','custom-browser-blue','system-light','system-dark']){
-   if(theme.startsWith('system-'))nativeTheme.themeSource=theme.slice(7);
+   if(theme.startsWith('system-')){
+    nativeTheme.themeSource=theme.slice(7);
+    // OS/CDP media updates arrive asynchronously. Let the application's media
+    // listener finish before applying the synthetic system-theme selection.
+    await wait(()=>run('matchMedia("(prefers-color-scheme: dark)").matches==='+String(theme==='system-dark')));
+    await run('new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)))');
+   }
    await run(`browserThemeAddress.focus();browserThemeAddress.value='https://example.com/unsaved';browserThemeAddress.setSelectionRange(8,15);browserThemePresentation(${JSON.stringify({theme:theme.startsWith('system-')?'system':theme,customThemes})});void 0`);
    const p=await palette();assert.equal(await run('getComputedStyle(document.querySelector(".browser-toolbar")).backgroundColor'),p.side,theme+' toolbar surface');
    assert.equal(await run('getComputedStyle(document.querySelector(".browser-tabs")).backgroundColor'),p.side,theme+' tab surface');
