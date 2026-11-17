@@ -1,0 +1,79 @@
+[
+  {
+    "id": "thirdparty.browser",
+    "version": "0.1.35",
+    "path": "thirdparty.browser-0.1.35.plugin.json",
+    "size": 150382,
+    "sha256": "ae7042b6451de55971cebdc1c460658c2aecb588167d97a3a292fe344380a8c6"
+  },
+  {
+    "id": "thirdparty.novel-publisher",
+    "version": "0.1.35",
+    "path": "thirdparty.novel-publisher-0.1.35.plugin.json",
+    "size": 241526,
+    "sha256": "5f912b3c376564bf6d1dab3ede772394121ef1f0ade5ba1393886107a8a8c6e9"
+  },
+  {
+    "id": "thirdparty.glyph-workshop",
+    "version": "0.1.35",
+    "path": "thirdparty.glyph-workshop-0.1.35.plugin.json",
+    "size": 117726,
+    "sha256": "68879925d1552ae7e299743568b72ccf23713488ff3d827d060514727ec76f32"
+  },
+  {
+    "id": "thirdparty.text-reader",
+    "version": "0.1.35",
+    "path": "thirdparty.text-reader-0.1.35.plugin.json",
+    "size": 142067,
+    "sha256": "0308b52411321ff71bfc9458629251d1ab5d25b859594b796843d71d2517f0fc"
+  },
+  {
+    "id": "thirdparty.map-workshop",
+    "version": "0.1.35",
+    "path": "thirdparty.map-workshop-0.1.35.plugin.json",
+    "size": 185712,
+    "sha256": "88c2daafba4328758685c9e4ec5169ab2ef2c30d18406be0e58baa7b9446a6f1"
+  },
+  {
+    "id": "thirdparty.doubao",
+    "version": "0.1.35",
+    "path": "thirdparty.doubao-0.1.35.plugin.json",
+    "size": 365606,
+    "sha256": "206802e64cde4976c8cc8227f5ef1ec2dcac2ba2095e65585ea0092597c996ff"
+  },
+  {
+    "id": "thirdparty.character-chat",
+    "version": "0.1.35",
+    "path": "thirdparty.character-chat-0.1.35.plugin.json",
+    "size": 57231,
+    "sha256": "ef238037f9bddff97b7c49b99ac90fd0845dd96d651c42bd2ba49b535b5ddaf5"
+  },
+  {
+    "id": "thirdparty.local-h3",
+    "version": "0.1.35",
+    "path": "thirdparty.local-h3-0.1.35.plugin.json",
+    "size": 59308,
+    "sha256": "19f34e6bc974e98b5d7e2b97f1d3afd5a19e110805d64b5c59790882c5384a59"
+  },
+  {
+    "id": "thirdparty.depth-explorer",
+    "version": "0.1.35",
+    "path": "thirdparty.depth-explorer-0.1.35.plugin.json",
+    "size": 24929,
+    "sha256": "8ba6e9cbf23bd0b30d89edaad16ccfeaf4a749c73515ee0c310be42c7628ddd1"
+  },
+  {
+    "id": "official.nutstore",
+    "version": "0.1.35",
+    "path": "official.nutstore-0.1.35.plugin.json",
+    "size": 216218,
+    "sha256": "a94ed78ab5379eb2f4434ea6fc9ad9677060cd30c72d3ff7fc8df04b3df6dd7c"
+  },
+  {
+    "id": "thirdparty.calendar",
+    "version": "1.0.5",
+    "path": "thirdparty.calendar-1.0.5.plugin.json",
+    "size": 25384,
+    "sha256": "f90fe5924aba5ac51561d98c501cb1c71b1a831e3f588398b151b07af2de73f0"
+  }
+]

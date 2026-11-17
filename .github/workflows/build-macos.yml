@@ -1,11 +1,11 @@
-name: Build Shensi 0.0.41 for macOS
-run-name: Shensi 0.0.41 macOS packages
+name: Build Shensi 0.0.42 for macOS
+run-name: Shensi 0.0.42 macOS packages
 on:
   workflow_dispatch:
 permissions:
   contents: read
 concurrency:
-  group: shensi-macos-0.0.41
+  group: shensi-macos-0.0.42
   cancel-in-progress: false
 jobs:
   build:
@@ -52,13 +52,15 @@ jobs:
       - name: Prepare macOS application and native tools
         run: |
           node packaging/macos/prepare-release.mjs "$WORK/extracted/resources/app" "$WORK" "$ARCH"
+          cp packaging/macos/extensions/catalog.json "$WORK/app/resources/plugins/public-extension-catalog.json"
           bash packaging/macos/prepare-runtime.sh "$WORK" "$ARCH"
       - name: Create application icon
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p build/mac/icon.iconset
-          source="$WORK/app/packages/ui/logo.png"
+          "$WORK/runtime/chushou-runtime/bin/python3" -I -B -c "import sys,runpy;sys.path.insert(0,'$WORK/runtime/chushou-runtime/packages');sys.argv=['prepare-icon.py','$WORK/app/packages/ui/logo.png','build/mac/dock-icon.png'];runpy.run_path('packaging/macos/prepare-icon.py',run_name='__main__')"
+          source="build/mac/dock-icon.png"
           for size in 16 32 128 256 512; do
             sips -z "$size" "$size" "$source" --out "build/mac/icon.iconset/icon_${size}x${size}.png"
             double=$((size * 2))
@@ -74,7 +76,7 @@ jobs:
           app="$(find "$WORK/dist-$ARCH" -maxdepth 2 -name '*.app' -print -quit)"
           test -n "$app"
           node packaging/macos/after-sign.cjs "$app" "$ARCH"
-          hdiutil verify "$WORK/dist-$ARCH/Shensi-0.0.41-$ARCH.dmg"
+          hdiutil verify "$WORK/dist-$ARCH/Shensi-0.0.42-$ARCH.dmg"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -84,6 +86,8 @@ jobs:
             build/macos-release/dist-${{ matrix.arch }}/Shensi-*.zip
             build/mac-verification-*.json
             build/mac-ui-*.png
+            build/ui-*/**/*
+            build/mac/dock-icon.png
             build/macos-release/adaptations.json
           if-no-files-found: warn
   publish:
@@ -110,4 +114,4 @@ jobs:
             find "macos-artifacts/macos-$arch" -type f \( -name '*.dmg' -o -name '*.zip' \) -exec cp '{}' release-mac/ \;
           done
           (cd release-mac && sha256sum *.dmg *.zip > SHA256SUMS-macos.txt)
-          gh release upload v0.0.41 release-mac/* --repo "$GITHUB_REPOSITORY"
+          gh release create v0.0.42 release-mac/* --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --latest=false --title '神思 0.0.42 · macOS' --notes 'Mac 按钮改用跨平台 SVG；内置与自定义主题、独立扩展安装重启和本地资料回读已验证。Dock 图标四角圆角。包含 Apple Silicon / Intel DMG 和 ZIP。仅 ad-hoc 签名，未做 Apple 公证。账号授权与付费生成需在用户 Mac 验证；Windows 专用 H3/SenseVoice 不支持 Mac。Windows 最新版与更新源不变。'

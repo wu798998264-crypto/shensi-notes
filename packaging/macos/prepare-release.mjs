@@ -10,6 +10,7 @@ assert(isAbsolute(relative(source,app))||relative(source,app).startsWith('..'+se
 await mkdir(app,{recursive:false});
 for(const name of ['apps','packages','resources','package.json','release-build.json'])await cp(join(source,name),join(app,name),{recursive:true,errorOnExist:true,force:false});
 const pkg=JSON.parse(await readFile(join(app,'package.json')));assert.equal(pkg.version,'0.0.41');assert.equal(pkg.name,'shensi-notes');
+pkg.version='0.0.42';
 // These are retired Windows integrations, never macOS executables.
 for(const name of ['resources/thirdparty','resources/yunx/runtime/runtime','resources/dreamina-canvas/dreamina-canvas.exe'])await rm(join(app,name),{recursive:true,force:true});
 async function prune(folder){for(const entry of await readdir(folder,{withFileTypes:true})){const p=join(folder,entry.name);assert(!entry.isSymbolicLink(),'Unexpected link in public source');if(entry.isDirectory())await prune(p);else if(/\.(?:exe|dll|pyd|ps1|bat|cmd|cs)$/i.test(entry.name))await rm(p);}}
@@ -28,20 +29,18 @@ await replace('packages/official/external-browsers.mjs',"AUTH_BROWSERS[entry.bro
 await replace('packages/official/external-browsers.mjs',"const name=String(input.name||'').trim(),executable=String(input.executable||'').trim(),profileRoot=String(input.profileRoot||'').trim();","const name=String(input.name||'').trim(),executable=await browserExecutable(String(input.executable||'').trim()),profileRoot=String(input.profileRoot||'').trim();");
 await replace('packages/official/external-browsers.mjs',"extname(executable).toLowerCase()!=='.exe'||",'');
 await replace('packages/official/external-browsers.mjs','请选择有效的浏览器 .exe 程序','请选择有效的浏览器应用');
-// Existing public native packages bind Windows host hashes. Never advertise an
-// incompatible package as installable on this Mac host. Built-ins stay usable.
-await replace('packages/core/src/public-extension-catalog.mjs','i=>i.hostVersion===hostVersion','i=>i.hostVersion===hostVersion&&(i.packageFormat!==NATIVE_EXTENSION_FORMAT||i.platform===process.platform)');
-await replace('packages/core/src/plugin-updates.mjs'," const repository=record.updateChannel?.repository",` if(process.platform==='darwin'&&NATIVE_EXTENSION_SPECS.some(p=>p.id===record.id))return {...base,status:'unavailable',available:false,message:'此 macOS 内置扩展随神思更新，尚无匹配的独立更新包。'};
- const repository=record.updateChannel?.repository`);
 const patch=JSON.parse(await readFile(join(work,'doubao.plugin.json')));assert.equal(patch.id,'thirdparty.doubao');assert.equal(patch.version,'0.1.34');
 for(const p of ['apps/desktop/doubao-driver.mjs','packages/thirdparty/doubao-tasks.mjs']){await writeFile(join(app,p),patch.files[p]);changes.push({file:p,sha256:hash(Buffer.from(patch.files[p]))});}
+const overrides=JSON.parse(await readFile(resolve('packaging/macos/overrides.json'),'utf8'));
+for(const entry of overrides){assert(/^(?:packages\/ui\/[a-z-]+\.(?:js|css)|packages\/core\/src\/(?:native-extensions|public-extension-catalog)\.mjs|packages\/thirdparty\/speech-engine\.mjs)$/.test(entry.path));const bytes=await readFile(resolve('packaging/macos/overrides',entry.path));assert.equal(hash(bytes),entry.sha256);await writeFile(join(app,entry.path),bytes);changes.push({file:entry.path,sha256:entry.sha256});}
 await writeFile(join(app,'apps/desktop/main-macos.mjs'),`import {join} from 'node:path';
 const resources=process.resourcesPath;
 process.env.SHENSI_LIBTV_CLI_PATH ||= join(resources,'cli/libtv');
 process.env.SHENSI_DREAMINA_CANVAS_EXECUTABLE ||= join(resources,'cli/dreamina-canvas');
+process.env.SHENSI_NOTES_UPDATE_FEED ||= 'https://raw.githubusercontent.com/wu798998264-crypto/shensi-notes/main/catalog/macos-update.json';
 await import('./main.mjs');\n`);
 pkg.main='apps/desktop/main-macos.mjs';await writeFile(join(app,'package.json'),JSON.stringify(pkg,null,2)+'\n');
-await writeFile(join(work,'adaptations.json'),JSON.stringify({version:pkg.version,arch,changes,containsUserData:false,limits:['Windows-only local SenseVoice ASR and H3 helpers are unavailable; no automatic audio upload','Native extension updates require a macOS-compatible host package','Website and paid-generation checks require the user to authorize accounts on the Mac']},null,2));
+await writeFile(join(work,'adaptations.json'),JSON.stringify({version:pkg.version,arch,changes,containsUserData:false,limits:['Windows-only local SenseVoice ASR and H3 helpers are unavailable; no automatic audio upload','Website and paid-generation checks require the user to authorize accounts on the Mac']},null,2));
 let checked=0;async function syntax(folder){for(const e of await readdir(folder,{withFileTypes:true})){const p=join(folder,e.name);if(e.isDirectory())await syntax(p);else if(/\.[mc]?js$/.test(e.name)){const r=spawnSync(process.execPath,['--check',p],{encoding:'utf8'});assert.equal(r.status,0,r.stderr);checked++;}}}await syntax(join(app,'apps'));await syntax(join(app,'packages'));
 const config={appId:'com.shensi.notes',productName:'神思',electronVersion:'42.4.0',asar:false,npmRebuild:false,nodeGypRebuild:false,compression:'normal',directories:{app,output:join(work,'dist-'+arch)},files:['**/*'],extraResources:[{from:join(work,'runtime'),to:'.'}],afterSign:resolve('packaging/macos/after-sign.cjs'),mac:{icon:resolve('build/mac/icon.icns'),category:'public.app-category.productivity',identity:'-',hardenedRuntime:false,gatekeeperAssess:false,target:[{target:'dmg',arch:[arch]},{target:'zip',arch:[arch]}],artifactName:'Shensi-${version}-${arch}.${ext}'},dmg:{artifactName:'Shensi-${version}-${arch}.dmg'},publish:null};
 await writeFile(join(work,'builder.json'),JSON.stringify(config,null,2));console.log(JSON.stringify({prepared:true,arch,checked,changes:changes.map(v=>v.file)}));

@@ -1,0 +1,45 @@
+import {spawn,execFile} from 'node:child_process';
+import {promisify} from 'node:util';
+import {access,readFile,mkdir,unlink} from 'node:fs/promises';
+import {join,resolve} from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {randomUUID} from 'node:crypto';
+import {speechInstruction} from '../ui/speech-contract.js';
+import {failure} from '../official/store.mjs';
+import {speechRuntimeLayout} from './speech-bundle.mjs';
+import {createPollyClient} from './aws-polly.mjs';
+import {requestSpeechAudio} from './speech-api.mjs';
+import {nativeExtensionResource} from '../core/src/native-extensions.mjs';
+const resources=fileURLToPath(new URL('../../resources/text-reader/',import.meta.url));
+export function inspectWav(bytes,{reference=false}={}){
+ if(bytes.length<44||bytes.toString('ascii',0,4)!=='RIFF'||bytes.toString('ascii',8,12)!=='WAVE'||bytes.readUInt32LE(4)+8!==bytes.length)throw failure('不是完整的 WAV 音频');
+ let fmt,data;for(let offset=12;offset+8<=bytes.length;){const size=bytes.readUInt32LE(offset+4),end=offset+8+size;if(end>bytes.length)throw failure('音频数据不完整');const name=bytes.toString('ascii',offset,offset+4);if(name==='fmt ')fmt=bytes.subarray(offset+8,end);if(name==='data')data=bytes.subarray(offset+8,end);offset=end+(size%2);}
+ if(!fmt||fmt.length<16||!data?.length)throw failure('音频缺少格式或采样数据');const codec=fmt.readUInt16LE(0),channels=fmt.readUInt16LE(2),sampleRate=fmt.readUInt32LE(4),bits=fmt.readUInt16LE(14),block=fmt.readUInt16LE(12);
+ if(![1,3].includes(codec)||![1,2].includes(channels)||sampleRate<8000||sampleRate>96000||![16,32].includes(bits)||codec===3&&bits!==32||block!==channels*bits/8||data.length%block)throw failure('仅支持有效的 PCM/浮点 WAV 音频');
+ const duration=data.length/(sampleRate*block);if(duration<.1||duration>1800||reference&&(duration<3||duration>10.5))throw failure(reference?'参考音频需要 3–10 秒的清晰 WAV':'音频时长无效');
+ let peak=0;for(let i=0;i<data.length;i+=bits/8){const value=codec===3?data.readFloatLE(i):bits===16?data.readInt16LE(i)/32768:data.readInt32LE(i)/2147483648;if(!Number.isFinite(value)||Math.abs(value)>1.01)throw failure('音频采样无效');peak=Math.max(peak,Math.abs(value));}if(peak<.0001)throw failure('音频为空白或静音');return {duration,sampleRate,channels,peak,mimeType:'audio/wav'};
+}
+export async function inspectSpeechRuntime(runtimeRoot){const layout=await speechRuntimeLayout(runtimeRoot),checks=await Promise.all(layout.required.map(async file=>({file,exists:await access(join(runtimeRoot,file)).then(()=>true,()=>false)})));const ready=checks.every(c=>c.exists);return {runtimeRoot,python:join(runtimeRoot,layout.python),portable:layout.portable,ready,checks,message:ready?'环境文件齐全；开始合成时加载模型。':'本地模型包不完整：需要便携 Python、CosyVoice2 完整推理权重、分词器和离线文本资源，或已配置的完整旧环境。'};}
+export async function prepareSystemVoices(directory){await mkdir(directory,{recursive:true});
+ if(process.platform==='darwin'){
+  const say=promisify(execFile),{stdout}=await say('/usr/bin/say',['-v','?'],{timeout:15000}),voices=[];
+  const selected=stdout.split('\n').map(line=>line.match(/^(.*?)\s+(zh_CN|en_US)\s+#/)).filter(Boolean).sort((a,b)=>Number(b[2]==='zh_CN')-Number(a[2]==='zh_CN')).slice(0,3);
+  for(const [index,match] of selected.entries()){
+   const name=match[1].trim(),id='mac-system-'+index,transcript=match[2]==='zh_CN'?'欢迎使用神思文档朗读。清晨的阳光穿过窗户，照亮桌上的书页。':'Welcome to Shensi. The morning sun shines through the window and lights up the pages of a book.',file=join(resolve(directory),id+'.wav');
+   try{await say('/usr/bin/say',['-v',name,'-r','180','--file-format=WAVE','--data-format=LEI16@24000','-o',file,transcript],{timeout:60000});inspectWav(await readFile(file),{reference:true});voices.push({id,name,transcript,file,available:true,origin:'local-macos-speech'});}catch{voices.push({id,name,available:false,reason:'当前系统音色不可用，请在 macOS 设置中安装声音或上传自定义 WAV 音色'});}
+  }
+  return voices;
+ }
+ if(process.platform!=='win32')throw failure('当前系统请上传自定义 WAV 参考音色');
+ return new Promise((resolveResult,reject)=>{const quote=v=>"'"+v.replace(/'/g,"''")+"'",command='& ([scriptblock]::Create([IO.File]::ReadAllText('+quote(nativeExtensionResource(join(resources,'default-voices.ps1')))+',[Text.Encoding]::UTF8))) -Destination '+quote(resolve(directory)),child=spawn('powershell.exe',['-NoProfile','-EncodedCommand',Buffer.from(command,'utf16le').toString('base64')],{windowsHide:true,stdio:['ignore','pipe','pipe']});let out='';child.stdout.setEncoding('utf8');child.stdout.on('data',v=>out+=v);child.on('error',reject);child.on('exit',code=>{try{if(code)throw failure('无法准备系统参考音色，请上传自定义 WAV 音色');resolveResult(JSON.parse(out.replace(/^\uFEFF/,'')));}catch(e){reject(e);}});});}
+export function createSpeechEngine({polly=createPollyClient()}={}){let child,key,pending,buffer='',idle,termination=Promise.resolve();const kill=()=>{clearTimeout(idle);const old=child;child=null;key='';if(old){termination=process.platform==='win32'?new Promise(resolve=>{const killer=spawn('taskkill.exe',['/PID',String(old.pid),'/T','/F'],{windowsHide:true,stdio:'ignore'});killer.once('error',()=>{old.kill();resolve();});killer.once('exit',()=>{old.kill();resolve();});}):Promise.resolve(old.kill());}pending?.reject(failure('本地 TTS 进程已停止，原任务不会自动重发'));return termination;};
+ async function local(snapshot,{signal,onStage}={}){
+  signal?.throwIfAborted();const runtime=await inspectSpeechRuntime(snapshot.source.runtimeRoot);signal?.throwIfAborted();if(!runtime.ready)throw failure(runtime.message,'TTS_ENVIRONMENT_MISSING');
+  if(pending)throw failure('本地 TTS 仍在处理前一段');const nextKey=snapshot.source.runtimeRoot;if(child&&key!==nextKey)kill();
+  if(!child){key=nextKey;const process=child=spawn(runtime.python,['-I','-u',nativeExtensionResource(join(resources,'cosyvoice_worker.py'))],{cwd:key,windowsHide:true,env:{...globalThis.process.env,PYTHONIOENCODING:'utf-8',PYTHONUTF8:'1',HF_HUB_OFFLINE:'1',TRANSFORMERS_OFFLINE:'1',PYTHONDONTWRITEBYTECODE:'1',...(runtime.portable?{WETEXT_FST_DIR:join(key,'wetext'),HF_HOME:join(snapshot.cacheRoot,'runtime-cache','huggingface'),MODELSCOPE_CACHE:join(snapshot.cacheRoot,'runtime-cache','modelscope'),NUMBA_CACHE_DIR:join(snapshot.cacheRoot,'runtime-cache','numba')}: {})},stdio:['pipe','pipe','pipe']});buffer='';process.stdout.setEncoding('utf8');process.stdout.on('data',chunk=>{if(child!==process)return;buffer+=chunk;let index;while((index=buffer.indexOf('\n'))>=0){const line=buffer.slice(0,index);buffer=buffer.slice(index+1);if(!line.startsWith('@SHENSI@'))continue;try{const message=JSON.parse(line.slice(8));if(message.id!==pending?.id)continue;if(message.stage)pending.onStage?.(message.stage,message.progress);if(message.error)pending.reject(failure(message.error));else if(message.complete)pending.resolve(message);}catch{}}});process.stderr.on('data',()=>{});process.on('error',e=>{if(child===process){pending?.reject(failure('无法启动本地 TTS Python：'+e.code));kill();}});process.on('exit',()=>{if(child===process){pending?.reject(failure('本地 TTS 进程已结束，原任务不会自动重发'));child=null;key='';}});}
+  const output=join(snapshot.cacheRoot,randomUUID()+'.wav');await mkdir(snapshot.cacheRoot,{recursive:true});clearTimeout(idle);
+try{await new Promise((resolveResult,reject)=>{const id=randomUUID(),timer=setTimeout(()=>{pending?.reject(failure('本地 TTS 等待超时，不会自动重发'));kill();},15*60*1000),abort=()=>{pending?.reject(signal.reason||failure('朗读已停止'));kill();};pending={id,onStage,resolve:v=>{clearTimeout(timer);signal?.removeEventListener('abort',abort);resolveResult(v);},reject:e=>{clearTimeout(timer);signal?.removeEventListener('abort',abort);reject(e);}};signal?.addEventListener('abort',abort,{once:true});if(signal?.aborted){abort();return;}child.stdin.write(JSON.stringify({id,runtimeRoot:key,text:snapshot.text,voice:snapshot.voice,parameters:{...snapshot.parameters,instruction:speechInstruction(snapshot.parameters)},output})+'\n',error=>{if(error)pending?.reject(error);});});signal?.throwIfAborted();const bytes=await readFile(output);inspectWav(bytes);return bytes;}finally{await termination;pending=null;await unlink(output).catch(()=>{});idle=setTimeout(kill,3*60*1000);idle.unref();}
+ }
+ async function synthesize(snapshot,options={}){if(snapshot.source.kind==='local')return local(snapshot,options);options.signal?.throwIfAborted();options.onStage?.('synthesizing');if(snapshot.source.protocol==='aws_polly'){const bytes=await polly.synthesize(snapshot,options.apiKey,options);inspectWav(bytes);return bytes;}const p=snapshot.parameters,body={model:snapshot.source.model,input:snapshot.text,voice:p.voiceId,response_format:'wav',...(snapshot.source.capabilitiesResolved.speed?{speed:p.speed}:{}),...(speechInstruction(p)?{instructions:speechInstruction(p)}:{})},url=new URL(snapshot.source.baseUrl.replace(/\/$/,'')+'/audio/speech');const bytes=await requestSpeechAudio(url,body,{apiKey:options.apiKey,signal:AbortSignal.any([options.signal||new AbortController().signal,AbortSignal.timeout(180000)])});try{inspectWav(bytes);}catch{throw Object.assign(failure('上游返回的音频不是完整 WAV；已保留原任务，不自动重发','SPEECH_RESULT_INVALID'),{submissionState:'submitted',billingRisk:'result_unavailable'});}return bytes;}
+ return {synthesize,close:kill};
+}

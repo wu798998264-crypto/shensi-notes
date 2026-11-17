@@ -1,0 +1,62 @@
+[
+  {
+    "path": "packages/ui/ui-glyph.js",
+    "sha256": "5ea20312d5136891c906166e09c4acbbd38ccf036069a97f5cd2de8c3647d246"
+  },
+  {
+    "path": "packages/ui/app.js",
+    "sha256": "3a5c631300b277e451387e8942eff1542faec4191b16cec813babd0e2739c1e6"
+  },
+  {
+    "path": "packages/ui/book-picker.js",
+    "sha256": "f8da4375df162c4744bd728b1f2f67a0c3be9b196545fea609230de0ebc7890a"
+  },
+  {
+    "path": "packages/ui/recycle-bin.js",
+    "sha256": "e8ad79446f7c44fe9303f9821fbffa338b1d2f7611363e8a65570240564b4612"
+  },
+  {
+    "path": "packages/ui/editor-colors.js",
+    "sha256": "b849f83478db5cea16944cf8be82dd43f837d39bc20017f65c08814d6e790379"
+  },
+  {
+    "path": "packages/ui/generation-picker.js",
+    "sha256": "51fe28901c72afe5c5c8f223a88704a9bdc46b9e47d180849bace7fdb008e7b7"
+  },
+  {
+    "path": "packages/ui/media-ui.js",
+    "sha256": "ca371c4454a2cece39ddafa426176335c9b296d5f23b60eab98fd3dfb325cad8"
+  },
+  {
+    "path": "packages/ui/chat-layout.js",
+    "sha256": "0e0c5de155d5ae01b6df50efa6c06242e585b18473fac322ae31b80255f7bc7c"
+  },
+  {
+    "path": "packages/ui/selection-edit.js",
+    "sha256": "f6fff6ebe522787b34d62d4783605bfe81b19c3118c76c0cc0e28128cfd26343"
+  },
+  {
+    "path": "packages/ui/writing-timer.js",
+    "sha256": "ebf3a2d3eb522bc1f8102a847ab243a84fcd15b4ca92491319d407a121a4a92e"
+  },
+  {
+    "path": "packages/ui/original-icons.js",
+    "sha256": "5cb31cae8385d974a02ccd11dca0918d567cf2884b9ee3fcf59179cb91a2c70d"
+  },
+  {
+    "path": "packages/ui/styles.css",
+    "sha256": "4b32d8d148f2ec9ca55008b520c53a535e3c5dab3eca3d93a316adfc9b7d4adb"
+  },
+  {
+    "path": "packages/core/src/native-extensions.mjs",
+    "sha256": "618d57fce6e9283994b98638b8840751819a8e9067495f37e1f87c6fea7cc344"
+  },
+  {
+    "path": "packages/core/src/public-extension-catalog.mjs",
+    "sha256": "060513c1d60de965f8a332d00594f80a4f8624cec1b8764536ab69f4cfaa1782"
+  },
+  {
+    "path": "packages/thirdparty/speech-engine.mjs",
+    "sha256": "11bce48b22999e38d02632eec8aca196a8025f1dfcefbb4417fb669478965a92"
+  }
+]
