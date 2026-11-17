@@ -1,0 +1,55 @@
+import {snapshotCardModelDefaults} from './card-model-defaults.js';
+import {escapeHtml as h} from './editor.js';
+import {openBookPicker} from './book-picker.js';
+import {openBoardAssets,sameAssetContent} from './board-assets.js';
+import {chooseBoardMedia} from './board-upload.js';
+import {originalIcon} from './original-icons.js';
+export function mountGenerationSources(form,{context,doc,target,references,scope,changed,removed:onRemove=()=>{}}) {
+ let uploading=false;
+ const picker=form.querySelector('[data-generation-add-reference]'),holder=picker.closest('label');
+ const addMenu=document.createElement('div');addMenu.className='generation-reference-add';addMenu.innerHTML='<button type="button" data-generation-reference-menu aria-label="添加参考" title="添加参考" aria-expanded="false"><span aria-hidden="true">+</span><small>参考</small></button><div class="generation-reference-add-menu" popover="auto" role="menu" aria-label="添加参考来源">'+[['canvas','白板已有卡片','选择当前白板中的一张或多张卡片','reference-canvas'],['upload','上传本地文件','上传后自动建立卡片并连接为上游','upload'],['assets','全部资产','复用已上传或生成过的资产','versions'],['novel','小说引用','搜索小说并读取所选章节','novel'],['document','文档引用','按笔记本和目录选择完整文档','document'],['skill','Skill 引用','从本地技能目录选择完整 Skill','reference-skill']].map(([id,label,description,icon])=>'<button type="button" role="menuitem" data-generation-'+id+'>'+originalIcon(icon)+'<span><strong>'+label+'</strong><small>'+description+'</small></span></button>').join('')+'</div>';holder.replaceWith(addMenu);picker.hidden=true;addMenu.append(picker);
+ const menu=addMenu.querySelector('[popover]'),menuButton=addMenu.querySelector('[data-generation-reference-menu]');
+ const positionMenu=()=>{if(!menu.matches(':popover-open'))return;const rect=menuButton.getBoundingClientRect(),width=Math.min(320,Math.max(240,innerWidth-20));menu.style.width=width+'px';menu.style.maxHeight=(innerHeight-20)+'px';const height=Math.min(menu.scrollHeight,innerHeight-20),below=rect.bottom+6;menu.style.left=Math.round(Math.min(Math.max(rect.left,10),innerWidth-width-10))+'px';menu.style.top=Math.round(below+height<=innerHeight-10?below:Math.max(10,rect.top-height-6))+'px';};
+ for(const key of ['novel','document','skill'])form.querySelector('[data-generation-'+key+']').hidden=form.querySelector('[name=channel]').value!=='text';
+ menuButton.onclick=()=>{menu.togglePopover();positionMenu();};window.addEventListener('resize',positionMenu);document.addEventListener('shensi:board-layout',positionMenu);const removed=new MutationObserver(()=>{if(form.isConnected)return;window.removeEventListener('resize',positionMenu);document.removeEventListener('shensi:board-layout',positionMenu);removed.disconnect();});removed.observe(document.body,{childList:true});menu.addEventListener('toggle',()=>menuButton.setAttribute('aria-expanded',String(menu.matches(':popover-open'))));menu.onclick=event=>{if(event.target.closest('button'))menu.hidePopover();};picker.addEventListener('change',()=>menu.hidePopover());
+ const fileInput=document.createElement('input');fileInput.type='file';fileInput.multiple=true;fileInput.accept='image/*,video/*,audio/*';fileInput.hidden=true;addMenu.after(fileInput);
+ const active=()=>form.isConnected&&context.libraryId()===scope.id&&context.current()?.id===scope.documentId&&context.current()?.canvas===doc.canvas;
+ const ensureActive=()=>{if(!active())throw Error('白板已切换，未向其他白板添加参考');};
+ form.querySelector('[data-generation-canvas]').onclick=()=>{
+  const dialog=document.createElement('dialog'),selected=[];dialog.className='generation-canvas-picker';dialog.setAttribute('aria-label','选择白板参考卡片');const nodes=doc.canvas.nodes.filter(n=>n.id!==target.id&&!references.includes(n.id));
+  dialog.innerHTML='<header><h3>白板已有卡片</h3><button type="button" data-cancel aria-label="关闭参考选择">×</button></header><div class="generation-canvas-picker-list">'+(nodes.length?nodes.map(n=>'<label><input type="checkbox" value="'+h(n.id)+'">'+(n.file&&n.kind==='image'?'<img src="'+h(context.assetUrl(n.file,doc.id))+'" alt="">':'<span class="generation-canvas-picker-symbol">'+originalIcon(n.file?'attachment':'document')+'</span>')+'<span><strong>'+h(n.name||'卡片')+'</strong><small>'+h(n.file?n.kind:(n.text||'空白文本').slice(0,100))+'</small></span></label>').join(''):'<p>没有可添加的卡片</p>')+'</div><footer><output>按勾选顺序添加参考</output><button type="button" data-confirm disabled>添加参考</button></footer>';
+  const close=()=>{dialog.close();dialog.remove();};dialog.querySelector('[data-cancel]').onclick=close;dialog.oncancel=e=>{e.preventDefault();close();};dialog.onchange=e=>{if(e.target.checked)selected.push(e.target.value);else selected.splice(selected.indexOf(e.target.value),1);dialog.querySelector('[data-confirm]').disabled=!selected.length;};
+  dialog.querySelector('[data-confirm]').onclick=()=>{try{ensureActive();context.recordBoardUndo?.();for(const id of selected){if(!doc.canvas.nodes.some(n=>n.id===id))throw Error('参考卡片已不存在');if(!references.includes(id))references.push(id);if(!doc.canvas.edges.some(e=>e.fromNode===id&&e.toNode===target.id))doc.canvas.edges.push({id:'edge-'+crypto.randomUUID(),fromNode:id,toNode:target.id,fromSide:'right',toSide:'left'});}context.markDirty();context.refreshBoard?.();refresh();changed();close();}catch(error){context.toast(error.message);}};
+  document.body.append(dialog);dialog.showModal();
+ };
+ const append=entries=>{
+  ensureActive();context.recordBoardUndo?.();
+  for(const entry of entries){
+   const n={...entry,id:'node-'+crypto.randomUUID(),x:target.x-target.width-100,y:target.y+references.length*80,width:360,height:260};
+   snapshotCardModelDefaults(n);doc.canvas.nodes.push(n);doc.canvas.edges.push({id:'edge-'+crypto.randomUUID(),fromNode:n.id,toNode:target.id,fromSide:'right',toSide:'left'});references.push(n.id);
+  }
+  context.markDirty();context.refreshBoard?.();refresh();changed();
+ };
+ const refresh=()=>{picker.innerHTML='<option value="">添加白板参考…</option>'+doc.canvas.nodes.filter(n=>n.id!==target.id&&!references.includes(n.id)).map(n=>`<option value="${h(n.id)}">${h(n.name||n.id)} · ${n.file?'媒体':'文本'}</option>`).join('');};
+ form.querySelector('[data-generation-upload]').onclick=()=>fileInput.click();
+ form.querySelector('[data-generation-novel]').onclick=async()=>{try{ensureActive();const reference=await openBookPicker({api:(path,body)=>context.api('/api/official'+path,body),notebookId:scope.id});if(!reference)return;ensureActive();const novel=await context.api('/api/official/books/read',{id:scope.id,referenceId:reference.referenceId});ensureActive();append([{type:'text',name:novel.title+' · 小说引用',text:novel.text,bookReference:{referenceId:novel.id,coverage:novel.coverage,sha256:novel.sha256}}]);await context.flush();}catch(error){context.toast(error.message);}};
+ for(const kind of ['document','skill'])form.querySelector('[data-generation-'+kind+']').onclick=async()=>{try{ensureActive();const ref=await openReferencePicker({api:context.api,kind,notebookId:scope.id});if(!ref)return;ensureActive();const source=await readReference(context.api,ref);ensureActive();append([{type:'text',kind:kind==='skill'?'skill':'reference',name:source.title,text:source.text,reference:source.reference,coreLinkedDocument:kind!=='skill'}]);await context.flush();}catch(error){context.toast(error.message);}};
+ fileInput.onchange=async()=>{
+  const button=form.querySelector('[data-generation-upload]');button.disabled=true;uploading=true;
+  try{for(const file of fileInput.files){ensureActive();if(!/^(image|video|audio)\//.test(file.type))throw Error('请选择图片、视频或音频文件');if(file.size>55*1024*1024)throw Error('单个参考文件上限为 55 MB');
+    const base64=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result).split(',')[1]);reader.onerror=()=>reject(Error('无法读取所选文件'));reader.readAsDataURL(file);});ensureActive();
+    const asset=await context.api('/api/attachment',{id:scope.id,name:file.name,mimeType:file.type,base64,whiteboardDocumentId:scope.documentId,whiteboardMediaKind:file.type.split('/')[0]});ensureActive();
+    append([{type:'file',kind:file.type.split('/')[0],name:file.name,file:asset.relativePath,mimeType:file.type,durationMs:asset.durationMs,videoWidth:asset.videoWidth,videoHeight:asset.videoHeight}]);
+   }await context.flush();
+  }catch(error){context.toast(error.message);}finally{button.disabled=false;uploading=false;fileInput.value='';}
+ };
+ form.querySelector('[data-generation-assets]').onclick=async()=>{
+  try{ensureActive();if(!await context.flush())return;let catalog=[];const refreshCatalog=async()=>{catalog=(await context.api('/api/board/assets')).assets;};await refreshCatalog();ensureActive();openBoardAssets({canvas:()=>{ensureActive();return doc.canvas;},catalog:()=>catalog,refreshCatalog,assetUrl:(path,asset)=>context.assetUrl(path,asset.sourceDocumentId,asset.sourceNotebookId),toast:context.toast,changed:()=>context.markDirty(),flush:context.flush,
+   setTrashed:async(assets,trashed)=>{ensureActive();if(assets.some(a=>a.sourceNotebookId!==scope.id||a.sourceDocumentId!==scope.documentId))throw Error('请在画布的全部资产中管理跨笔记资产回收站');if(!await context.flush())throw Error('资产状态未保存，请处理保存冲突');const result=await context.api('/api/board/assets/trash',{sourceIds:assets.map(a=>a.id),trashed,expectedStateStamp:context.stamp()});ensureActive();const next=result.state.documents[scope.documentId].canvas,prior=new Map(doc.canvas.nodes.map(n=>[n.id,n]));next.nodes=next.nodes.map(n=>prior.has(n.id)?Object.assign(prior.get(n.id),n):n);doc.canvas=next;context.applyResult(result);},
+   upload:async()=>{uploading=true;try{const entries=await chooseBoardMedia({api:context.api,id:scope.id,documentId:scope.documentId,ensureActive,includeText:true});if(entries.length){context.recordBoardUndo?.();doc.canvas.assets??=[];for(const entry of entries)doc.canvas.assets.push({id:'asset-library-'+crypto.randomUUID(),kind:entry.kind,origin:'upload',source:'asset-library',nodeName:entry.name,text:entry.text||'',attachment:entry.attachment,createdAt:new Date().toISOString()});context.markDirty();if(!await context.flush())throw Error('上传资产未保存，请处理保存冲突');}}finally{uploading=false;}},
+   add:{label:'添加为参考',run:async asset=>{ensureActive();const {node:source}=await context.api('/api/board/assets/import',{id:scope.id,documentId:scope.documentId,sourceId:asset.id,expectedSourceStateStamp:asset.sourceStateStamp});ensureActive();const n=asset.sourceNotebookId===scope.id&&asset.sourceDocumentId===scope.documentId?doc.canvas.nodes.find(n=>n.id===asset.sourceNodeId&&sameAssetContent(n,asset)):null;if(n&&n.id!==target.id){if(!references.includes(n.id))references.push(n.id);refresh();changed();}else append([{...source,coreAssetSourceId:asset.id}]);if(!await context.flush())throw Error('参考未保存，请处理保存冲突');}}
+  });}catch(error){context.toast(error.message);}
+ };
+ form.querySelector('[data-generation-clear]').onclick=()=>{onRemove([...references]);references.splice(0);refresh();changed();};refresh();return {refresh,get busy(){return uploading;}};
+}
+import {openReferencePicker,readReference} from './reference-picker.js';

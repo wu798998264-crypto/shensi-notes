@@ -27,6 +27,7 @@ import {OFFICIAL_PLUGINS} from './catalog.mjs';
 import {nativeExtensionRuntime} from '../core/src/native-extensions.mjs';
 import {jsonStore,failure} from './store.mjs';
 import {createModelService} from './models.mjs';
+import {createModelDefaults} from './model-defaults.mjs';
 import {createModelVerification} from './model-verification.mjs';
 import {createMembershipService} from './membership.mjs';
 import {createDesktopCloudNotebooks} from './cloud-notebooks.mjs';
@@ -44,7 +45,7 @@ import {createNutstoreSyncEngine} from './legacy/server/nutstore-sync/sync-engin
 import {createWebDavClient} from './legacy/server/nutstore-sync/webdav-client.mjs';
 import {createDesktopNutstoreNotebooks} from './nutstore-notebooks.mjs';
 export function createOfficialHost({service,desktop={},syncOptions={},mediaOptions={},agentOptions={},memberOptions={},depthOptions={},localH3Options={},readerOptions={},bookOptions={},consoleService,extensions}){
- const registry=jsonStore(join(service.dataRoot,'plugins','official.json'),{}),models=createModelService({dataRoot:service.dataRoot,desktop});
+ const registry=jsonStore(join(service.dataRoot,'plugins','official.json'),{}),models=createModelService({dataRoot:service.dataRoot,desktop,consolidateLegacyAccounts:true});
  const recycle=createPluginRecycle(service);
  const storage=pluginStorage(service);storage.setRecycle(recycle);
  registerLegacyXuannianRecycle({service,recycle});
@@ -57,6 +58,8 @@ export function createOfficialHost({service,desktop={},syncOptions={},mediaOptio
   const installed=p.category==='official'||!!nativeInstalled?true:record.installed??p.installed;
   return {...structuredClone(p),...record,settings:{...p.settings,...record.settings,...owner?.settings},...(p.managedBy?{enabled:owner.enabled!==false,managedBy:p.managedBy}:{}),...(installed!==undefined?{installed}:{}),...(nativeInstalled?{enabled:record.enabled??true}:{}),available:p.category!=='official'&&installed===false};
  });};
+ const modelDefaults=createModelDefaults({dataRoot:service.dataRoot,models,legacySettings:async()=>(await list()).find(p=>p.id==='official.whiteboard-generation')?.settings||{}});
+ service.setCardDefaultResolver?.(async()=>(await modelDefaults.read()).defaultProfiles);
  models.setBuiltinSource(LOCAL_H3_PLUGIN_ID,async()=>{const p=(await list()).find(p=>p.id===LOCAL_H3_PLUGIN_ID);return p?.installed===true&&p.enabled===true;});
  models.setBuiltinSource('thirdparty.text-reader',async()=>{const p=(await list()).find(p=>p.id==='thirdparty.text-reader');return p?.installed===true&&p.enabled===true;});
  const requirePlugin=async id=>{if(id===VAULT_PLUGIN_ID)id='thirdparty.browser';const p=(await list()).find(p=>p.id===id);if(!p?.enabled||p.installed===false)throw failure('插件尚未启用','PLUGIN_DISABLED');return p;};
@@ -92,6 +95,7 @@ export function createOfficialHost({service,desktop={},syncOptions={},mediaOptio
  async function hydrateSync(){if(syncedCredential)return;const saved=await models.secret('nutstore');if(saved)await sync.setSessionCredentials(JSON.parse(saved));syncedCredential=true;}
  async function update({pluginId,enabled,settings,uninstall=false,install=false}){
   if(pluginId===VAULT_PLUGIN_ID)pluginId='thirdparty.browser';
+  if(settings&&/^(official.conversation-control|official.whiteboard-generation|official.document-chat)$/.test(pluginId))await modelDefaults.read();
   if(OFFICIAL_PLUGINS.find(p=>p.id===pluginId)?.managedBy)pluginId='official.conversation-control';
   const base=OFFICIAL_PLUGINS.find(p=>p.id===pluginId);if(!base)throw failure('未知官方插件');if(uninstall&&base.category==='official')throw failure('核心插件只能停用，不能卸载','CORE_PLUGIN_REQUIRED');
   let localH3Install;
@@ -138,10 +142,12 @@ export function createOfficialHost({service,desktop={},syncOptions={},mediaOptio
   if(path.startsWith('/membership/'))return membership.action(path.slice('/membership/'.length),body);
   if(path.startsWith('/models/credentials/'))return modelVerification.run(path.slice('/models/credentials/'.length),body);
   if(path==='/models/authorization-sources')return models.authorizationSources();
+  if(path==='/models/default')return modelDefaults.set(body);
+  if(path==='/models'){const catalog=await models.list();return {...catalog,...await modelDefaults.read(catalog)};}
   if(path.startsWith('/models/external-browsers/'))return models.externalBrowsers.handle(path.slice('/models/external-browsers/'.length),body);
   if(path==='/knowledge')return knowledge.list();
   if(path.startsWith('/selection/'))return selectionEdits.handle(path.slice(11),body);
-  if(path==='/models')return models.list();if(path==='/models/save')return models.save(body);if(path==='/models/remove'){const result=await models.remove(body);if(!result.profiles.some(p=>profileSupports(p,'text')&&models.ready(p)))for(const id of ['official.document-chat','official.whiteboard-generation','official.conversation-control'])await chat.abortPlugin(id);if(!result.profiles.some(p=>profileHasMedia(p)&&models.ready(p)))await media.stopAll();return result;}if(path==='/models/test')return models.test(body);if(path==='/models/catalog')return models.catalog(body);
+  if(path==='/models/save')return models.save(body);if(path==='/models/remove'){const result=await models.remove(body);if(!result.profiles.some(p=>profileSupports(p,'text')&&models.ready(p)))for(const id of ['official.document-chat','official.whiteboard-generation','official.conversation-control'])await chat.abortPlugin(id);if(!result.profiles.some(p=>profileHasMedia(p)&&models.ready(p)))await media.stopAll();return result;}if(path==='/models/test')return models.test(body);if(path==='/models/catalog')return models.catalog(body);
   if(path.startsWith('/books/'))return books.handle(path.slice(7),body);
   if(path.startsWith('/works/tools/'))return workTools.handle(path.slice(13),body);
   if(path==='/works/activate'){await requirePlugin('official.works');return activateWork(service,body);}if(path==='/works/deactivate'){await requirePlugin('official.works');await workTools.stopAll();return deactivateWork(service,body);}if(path==='/works/create'){await requirePlugin('official.works');return workItem(service,body);}

@@ -1,73 +1,73 @@
 [
   {
     "id": "thirdparty.browser",
-    "version": "0.1.38",
-    "path": "thirdparty.browser-0.1.38.plugin.json",
+    "version": "0.1.40",
+    "path": "thirdparty.browser-0.1.40.plugin.json",
     "size": 150382,
-    "sha256": "217f932bcf4462dc4a19f3284a72a6c877b2a6bf6cfe71eadac28bdc240e7000"
+    "sha256": "a7f6e733e6abfdd36460ef9d2db7a15d4f8f285d85754e4f785bc2ce6edc9dd4"
   },
   {
     "id": "thirdparty.novel-publisher",
-    "version": "0.1.38",
-    "path": "thirdparty.novel-publisher-0.1.38.plugin.json",
+    "version": "0.1.40",
+    "path": "thirdparty.novel-publisher-0.1.40.plugin.json",
     "size": 241526,
-    "sha256": "2897c0514cd7bdce904ee65f3238124e742242541fac08872a8b30c39ac47534"
+    "sha256": "0e2fb73ea6c4424a5ee7613eecb90642c7ea55af1f36b0cb5f85c653b685069b"
   },
   {
     "id": "thirdparty.glyph-workshop",
-    "version": "0.1.38",
-    "path": "thirdparty.glyph-workshop-0.1.38.plugin.json",
+    "version": "0.1.40",
+    "path": "thirdparty.glyph-workshop-0.1.40.plugin.json",
     "size": 117726,
-    "sha256": "84f243b1737e67279aeebd189463d70f729a94bdd87179607db6bd86cfa04832"
+    "sha256": "8417056cfde77ddaea5449193c1d927072dd5e8e85ab9060f8f4edc7c9d36486"
   },
   {
     "id": "thirdparty.text-reader",
-    "version": "0.1.38",
-    "path": "thirdparty.text-reader-0.1.38.plugin.json",
+    "version": "0.1.40",
+    "path": "thirdparty.text-reader-0.1.40.plugin.json",
     "size": 142067,
-    "sha256": "4a2cba9cef2c6927fb553b0e4dee296b16119b4c577967b10eaecd21a134caa9"
+    "sha256": "1be443860ec1052132b6b96fc505bd201bb2c73856ed12c038b6a2af28639db9"
   },
   {
     "id": "thirdparty.map-workshop",
-    "version": "0.1.38",
-    "path": "thirdparty.map-workshop-0.1.38.plugin.json",
+    "version": "0.1.40",
+    "path": "thirdparty.map-workshop-0.1.40.plugin.json",
     "size": 185712,
-    "sha256": "510b9b9c95f87f61bdd2cba509ab761119d24c5d6295252b097cdfbf5f154722"
+    "sha256": "fa2c58a3ae20eefb4b6241af49b2bd26eca6f03409aa42e0ac2bae963a7fd723"
   },
   {
     "id": "thirdparty.doubao",
-    "version": "0.1.38",
-    "path": "thirdparty.doubao-0.1.38.plugin.json",
+    "version": "0.1.40",
+    "path": "thirdparty.doubao-0.1.40.plugin.json",
     "size": 365606,
-    "sha256": "10fe85f5bad1306ce297400405a97c32915346f6915d68600381f816968bbe06"
+    "sha256": "5b5edc3948ea12e344881292e7041aca52eac888e7c60d05355ed97a5f2ad86d"
   },
   {
     "id": "thirdparty.character-chat",
-    "version": "0.1.38",
-    "path": "thirdparty.character-chat-0.1.38.plugin.json",
+    "version": "0.1.40",
+    "path": "thirdparty.character-chat-0.1.40.plugin.json",
     "size": 57231,
-    "sha256": "f37d90f0387cc0b0172400fd11d3f1b37b5ef1557557e966d6d76f3fc23b307e"
+    "sha256": "66f5106c1c5799018c139851523588ece7405cca7c34274fb64f35058afa1a95"
   },
   {
     "id": "thirdparty.local-h3",
-    "version": "0.1.38",
-    "path": "thirdparty.local-h3-0.1.38.plugin.json",
+    "version": "0.1.40",
+    "path": "thirdparty.local-h3-0.1.40.plugin.json",
     "size": 59308,
-    "sha256": "670e181dc58f8a37312f1d13f18f39520f74c0748393031f1e813706a2b248aa"
+    "sha256": "48e50a060df02cfb11498ed91c716cdfe8fb51a199b489c88b94e581eccbbe6b"
   },
   {
     "id": "thirdparty.depth-explorer",
-    "version": "0.1.38",
-    "path": "thirdparty.depth-explorer-0.1.38.plugin.json",
+    "version": "0.1.40",
+    "path": "thirdparty.depth-explorer-0.1.40.plugin.json",
     "size": 24929,
-    "sha256": "eba014dd2f432a15ddb4a568ebb53e3a6b8917545376098a72cdf4001a3b2238"
+    "sha256": "d913a78e417ec3b9add05f92aa025cca781e12d2e16212fe231c2e8c56caf5ec"
   },
   {
     "id": "official.nutstore",
-    "version": "0.1.38",
-    "path": "official.nutstore-0.1.38.plugin.json",
+    "version": "0.1.40",
+    "path": "official.nutstore-0.1.40.plugin.json",
     "size": 216218,
-    "sha256": "39505d78c84316cb153d6953362052592236291a6e20ebb98fbf50e6948705cf"
+    "sha256": "483e433065e35058a35614f99ef7346e1c9978bcb46d91356b6c76295d84d2b2"
   },
   {
     "id": "thirdparty.calendar",

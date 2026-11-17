@@ -10,7 +10,7 @@ assert(isAbsolute(relative(source,app))||relative(source,app).startsWith('..'+se
 await mkdir(app,{recursive:false});
 for(const name of ['apps','packages','resources','package.json','release-build.json'])await cp(join(source,name),join(app,name),{recursive:true,errorOnExist:true,force:false});
 const pkg=JSON.parse(await readFile(join(app,'package.json')));assert.equal(pkg.version,'0.0.41');assert.equal(pkg.name,'shensi-notes');
-pkg.version='0.0.43';
+pkg.version='0.0.44';
 // These are retired Windows integrations, never macOS executables.
 for(const name of ['resources/thirdparty','resources/yunx/runtime/runtime','resources/dreamina-canvas/dreamina-canvas.exe'])await rm(join(app,name),{recursive:true,force:true});
 async function prune(folder){for(const entry of await readdir(folder,{withFileTypes:true})){const p=join(folder,entry.name);assert(!entry.isSymbolicLink(),'Unexpected link in public source');if(entry.isDirectory())await prune(p);else if(/\.(?:exe|dll|pyd|ps1|bat|cmd|cs)$/i.test(entry.name))await rm(p);}}
@@ -19,7 +19,6 @@ const changes=[];
 async function replace(file,old,next){const p=join(app,file),text=await readFile(p,'utf8');assert.equal(text.split(old).length-1,1,'Unexpected source boundary: '+file);const result=text.replace(old,next);await writeFile(p,result);changes.push({file,sha256:hash(Buffer.from(result))});}
 await replace('apps/desktop/yunx-engine.mjs',"'runtime','bin','java.exe'","'runtime','bin',process.platform==='win32'?'java.exe':'java'");
 await replace('apps/desktop/main.mjs',"filters:[{name:'浏览器程序',extensions:['exe']}]","filters:[{name:'浏览器程序',extensions:process.platform==='darwin'?['app']:['exe']}]" );
-await replace('packages/ui/model-external-browser.js','选择浏览器 .exe','选择浏览器程序');
 // Even the version probe must not write bytecode into a signed application.
 await replace('packages/official/chushou-executor.mjs',"[...prefix,'-I','-c','import sys;","[...prefix,'-I','-B','-c','import sys;");
 await replace('packages/official/external-browsers.mjs',"const profileRoots={edge:join(homedir(),'AppData/Local/Microsoft/Edge/User Data'),chrome:join(homedir(),'AppData/Local/Google/Chrome/User Data')};",`const profileRoots={edge:join(homedir(),'Library/Application Support/Microsoft Edge'),chrome:join(homedir(),'Library/Application Support/Google/Chrome')};
@@ -35,7 +34,8 @@ const dramaFiles=JSON.parse(await readFile(resolve('packaging/macos/shortdrama/i
 for(const row of dramaFiles){assert(/^(?:resources\/skills\/chushou\/(?:SKILL.md|bundle-manifest.json|references\/hongguo-download.md|scripts\/(?:download_drama.py|hongguo_provider.py|hongguo_vendor\/(?:guoapp.js|guoapp-host.cjs|guoapp-http.cjs|playback.cjs|cli.cjs|UPSTREAM.json|package.json|LICENSE)))|packages\/shared\/chushou-snapshot.js)$/.test(row.path));const bytes=await readFile(resolve('packaging/macos/shortdrama',row.path));assert.equal(hash(bytes),row.sha256);await writeFile(join(app,row.path),bytes);changes.push({file:row.path,sha256:row.sha256});}
 for(const name of ['hongguo.js','http.cjs','xgorgon.js','sixgod'])await rm(join(app,'resources/skills/chushou/scripts/hongguo_vendor',name),{recursive:true,force:true});
 const overrides=JSON.parse(await readFile(resolve('packaging/macos/overrides.json'),'utf8'));
-for(const entry of overrides){assert(/^(?:packages\/ui\/[a-z-]+\.(?:js|css)|packages\/core\/src\/(?:native-extensions|public-extension-catalog)\.mjs|packages\/official\/(?:catalog|host|selection-edits)\.mjs|packages\/thirdparty\/speech-engine\.mjs)$/.test(entry.path));const bytes=await readFile(resolve('packaging/macos/overrides',entry.path));assert.equal(hash(bytes),entry.sha256);await writeFile(join(app,entry.path),bytes);changes.push({file:entry.path,sha256:entry.sha256});}
+for(const entry of overrides){assert(/^(?:packages\/ui\/[a-z-]+\.(?:js|css)|packages\/core\/src\/(?:native-extensions|public-extension-catalog|service)\.mjs|packages\/official\/(?:catalog|host|selection-edits|model-defaults|chat|agent|models|model-verification|dreamina-account-migration|multimodal-account-migration)\.mjs|packages\/thirdparty\/speech-engine\.mjs)$/.test(entry.path));const bytes=await readFile(resolve('packaging/macos/overrides',entry.path));assert.equal(hash(bytes),entry.sha256);await writeFile(join(app,entry.path),bytes);changes.push({file:entry.path,sha256:entry.sha256});}
+await replace('packages/ui/model-external-browser.js','选择浏览器 .exe','选择浏览器程序');
 await writeFile(join(app,'apps/desktop/main-macos.mjs'),`import {join} from 'node:path';
 const resources=process.resourcesPath;
 process.env.SHENSI_LIBTV_CLI_PATH ||= join(resources,'cli/libtv');

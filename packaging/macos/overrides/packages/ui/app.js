@@ -1,3 +1,4 @@
+import {snapshotCardModelDefaults} from './card-model-defaults.js';
 import {uiGlyph} from './ui-glyph.js';
 import {snapCanvasValue} from '/legacy/whiteboard.js';
 import {editingState} from './workspace-view.js';
@@ -788,7 +789,7 @@ async function uploadFiles(files,target=attachmentTarget()){
   const text=current()?.canvas&&kind==='text'&&file.size<=2*1024*1024?(await file.text()).replace(/^\uFEFF/u,''):null;
   const base64=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result.split(',')[1]);reader.onerror=()=>reject(Error('无法读取所选文件'));reader.readAsDataURL(file);});ensureAttachmentTarget(target);
   const asset=await api('/api/attachment',{id:target.id,name:file.name,mimeType:mime,base64,...current().canvas?{whiteboardDocumentId:target.documentId,...['image','video','audio'].includes(kind)?{whiteboardMediaKind:kind}:{}}:{}});ensureAttachmentTarget(target);
-  if(current().canvas){pushBoardUndo();const c=current().canvas,node={id:'node-'+crypto.randomUUID(),type:text===null?'file':'text',kind:text===null?(kind==='text'?'file':kind):'text',name:file.name,...text===null?{file:asset.relativePath}:{text,attachment:asset},mimeType:mime,durationMs:asset.durationMs,videoWidth:asset.videoWidth,videoHeight:asset.videoHeight,x:target.point.x+index*40,y:target.point.y+index*40,width:360,height:260};c.nodes.push(node);selected=new Set([node.id]);boardChanged();}
+  if(current().canvas){pushBoardUndo();const c=current().canvas,node={id:'node-'+crypto.randomUUID(),type:text===null?'file':'text',kind:text===null?(kind==='text'?'file':kind):'text',name:file.name,...text===null?{file:asset.relativePath}:{text,attachment:asset},mimeType:mime,durationMs:asset.durationMs,videoWidth:asset.videoWidth,videoHeight:asset.videoHeight,x:target.point.x+index*40,y:target.point.y+index*40,width:360,height:260};snapshotCardModelDefaults(node);c.nodes.push(node);selected=new Set([node.id]);boardChanged();}
   else if(target.source){
    const name=file.name.replace(/[\[\]\\\r\n]/g,'_'),path=encodeURI(asset.relativePath).replaceAll('(','%28').replaceAll(')','%29'),markup=(kind==='image'?'!':'')+'['+name+']('+path+')';
    const {source,sourceRange:r}=target;source.setRangeText(markup,r.start,r.end,'end');source.oninput();target.sourceRange={start:source.selectionStart,end:source.selectionEnd,value:source.value};

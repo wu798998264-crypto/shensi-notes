@@ -5,7 +5,7 @@
   },
   {
     "path": "packages/ui/app.js",
-    "sha256": "3a5c631300b277e451387e8942eff1542faec4191b16cec813babd0e2739c1e6"
+    "sha256": "97fca592d2bde0e215948239bb1f1dddd3d0d3b6b607678799e9947054b269d1"
   },
   {
     "path": "packages/ui/book-picker.js",
@@ -25,7 +25,7 @@
   },
   {
     "path": "packages/ui/media-ui.js",
-    "sha256": "ca371c4454a2cece39ddafa426176335c9b296d5f23b60eab98fd3dfb325cad8"
+    "sha256": "c550e37d0373e16c161b1dadd57f5ed00a6a12760266c62888a09c63545214a1"
   },
   {
     "path": "packages/ui/chat-layout.js",
@@ -60,12 +60,20 @@
     "sha256": "11bce48b22999e38d02632eec8aca196a8025f1dfcefbb4417fb669478965a92"
   },
   {
+    "path": "packages/ui/generation-settings.js",
+    "sha256": "55d582fe8b91f85ba0f78ca678779e8615c651d6d3a9dc7206a32a6d6a8644de"
+  },
+  {
+    "path": "packages/ui/core-plugin-copy.js",
+    "sha256": "168496d98307acb67820ebae5a19355d0c4c2522a472734af7cc06e34edbef13"
+  },
+  {
     "path": "packages/official/catalog.mjs",
     "sha256": "67f0fcd133aa6c5349157acbc9c6feb74b8b4d35209a44d95b2585b0f61ffa00"
   },
   {
     "path": "packages/official/host.mjs",
-    "sha256": "fb37815c3b25e082907181ad3a9d62db3ccaeaa04f1498fa9ae3cd46fa37e1cc"
+    "sha256": "53bf4904fe3995fce5309d3cc9d439263b3b382f4c3f8dbd6173b66fb0e82655"
   },
   {
     "path": "packages/official/selection-edits.mjs",
@@ -77,7 +85,7 @@
   },
   {
     "path": "packages/ui/settings.js",
-    "sha256": "98ea488c2294c54907ee9130756ae32980d1f897b577fa02736d58c55dedd072"
+    "sha256": "364a2d43d2e8bffee021d1775ecac14498e105d1b2b1aec73618dd02bcebcdb3"
   },
   {
     "path": "packages/ui/extensions.js",
@@ -85,10 +93,90 @@
   },
   {
     "path": "packages/ui/official-ui.js",
-    "sha256": "3c6e0f9836317c03b29549b54b68fd1ee7aacbf9827ec58df0bb6e4efda0effd"
+    "sha256": "3a6c6f8bf925eca8aa31ca5b1baf88270c2af2df9db651e9b7c11de5faad4f87"
   },
   {
     "path": "packages/ui/tutorial.js",
     "sha256": "a92fa631760116f3ab80f8c68844388a8b7b481a8fd80ca229fa7fc09fa19ba0"
+  },
+  {
+    "path": "packages/official/model-defaults.mjs",
+    "sha256": "b5e31474cf2c70f19d7f7f07a3b56aa103735dce713b92e070e5d993689b568c"
+  },
+  {
+    "path": "packages/official/chat.mjs",
+    "sha256": "b40bb7cdc024e45ff3c8b665da1cfd12f6801583416e9ce6f551eb611ea7b7cd"
+  },
+  {
+    "path": "packages/official/agent.mjs",
+    "sha256": "05e33a784947400fbacb01122497b04b3137e283e738866b486da07bba4263fe"
+  },
+  {
+    "path": "packages/core/src/service.mjs",
+    "sha256": "539878b4104557da5983b0d6aabc1465828b5b490a3732872a0632f6c4b30959"
+  },
+  {
+    "path": "packages/ui/card-model-defaults.js",
+    "sha256": "26ed8116005e84a32e3cc76342939f6a740914a6fece6c31187dd9f85c3e5142"
+  },
+  {
+    "path": "packages/ui/canvas-model.js",
+    "sha256": "a5b9337e5bdffeadb8ce18d1e8b39c752198645ffbbf6dd3a6a4c55d54cc0416"
+  },
+  {
+    "path": "packages/ui/card-duplicate.js",
+    "sha256": "8778b3e0ee95e384286fac3fefe8b5e4e3c8d90bfaf7ae399364e603d8a981e7"
+  },
+  {
+    "path": "packages/ui/generation-sources.js",
+    "sha256": "b537fd5424dfa0ac95b99cdec675a919533691d4a66ccf6fc31f82a8ad900082"
+  },
+  {
+    "path": "packages/ui/model-authorization-source.js",
+    "sha256": "0b745995ebfa2ae1987c065bde33e96f2886fcdeea0ffe36ec1ee820db954457"
+  },
+  {
+    "path": "packages/ui/models-ui.js",
+    "sha256": "a1969fa209eb6908175d0977e9d0631e40abcd2d9df9c61e8affac5b99faa550"
+  },
+  {
+    "path": "packages/ui/model-verification.js",
+    "sha256": "19a7ce9da981d7dbda9829d1077eb29acb6a0ebaaf82919e212fbafc288477f9"
+  },
+  {
+    "path": "packages/official/models.mjs",
+    "sha256": "7a166e4b1938a0950428bf0b0f3e91a9291270a47a897c9e21e506928931e996"
+  },
+  {
+    "path": "packages/official/model-verification.mjs",
+    "sha256": "1c5fb6dca684560115173c6a9c27041ba4d9d723599225a4ab4580216a9eb968"
+  },
+  {
+    "path": "packages/official/dreamina-account-migration.mjs",
+    "sha256": "300d223a460b43045e77fc053614a88ae6ff2544f6ab84e90c0e3f63bdfc7fe2"
+  },
+  {
+    "path": "packages/official/multimodal-account-migration.mjs",
+    "sha256": "4270fd5ebc98fee137684a22852758f64b54d43806e8d12a76d6469438a413be"
+  },
+  {
+    "path": "packages/ui/model-capabilities.js",
+    "sha256": "321fca691157794bd650f081aa43c3ce901bddbde1ab26a429c540d2b31d0699"
+  },
+  {
+    "path": "packages/ui/task-model-picker.js",
+    "sha256": "9ac3e1560d91d40f4d9df01d458585637e9408bf0f57487ff6371fa766a8f5be"
+  },
+  {
+    "path": "packages/ui/text-model-selection.js",
+    "sha256": "1d690b0b0bae9170a7ebc2aab6344cd7bb34db0ed69537e1a79e6a85c48c7280"
+  },
+  {
+    "path": "packages/ui/generation-parameters.js",
+    "sha256": "bdd47ac7c5230094b28ebad8a0cc1d5ee9dad63740bf5b14d39d8d6b3575c318"
+  },
+  {
+    "path": "packages/ui/model-external-browser.js",
+    "sha256": "7f9ad725816fb60339a117c9d0f5232d181676dd0e184a7f1825e774f267fdf4"
   }
 ]
