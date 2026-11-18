@@ -1,28 +1,28 @@
 {
   "appId": "shensi-notes",
-  "version": "0.0.44",
-  "buildId": "20261117170002919",
+  "version": "0.0.45",
+  "buildId": "20261118094353144",
   "downloads": [
     {
       "platform": "win32",
       "arch": "x64",
-      "url": "https://github.com/wu798998264-crypto/shensi-notes/releases/download/v0.0.44/Shensi-Setup-0.0.44-20261117170002919-x64.exe",
-      "sha256": "bfd62a93a63d8e7dc6547930a9a55a35fa1096302f0224f1cdf99b7e514ee83c",
-      "sizeBytes": 377779160
+      "url": "https://github.com/wu798998264-crypto/shensi-notes/releases/download/v0.0.45/Shensi-Setup-0.0.45-20261118094353144-x64.exe",
+      "sha256": "7de23a10e7458968f8ae65585e2dc855683455b6247bc97fc6c19fd0299281c3",
+      "sizeBytes": 377795097
     },
     {
       "platform": "darwin",
       "arch": "arm64",
-      "url": "https://github.com/wu798998264-crypto/shensi-notes/releases/download/v0.0.44/Shensi-0.0.44-arm64.dmg",
-      "sha256": "9f1a370fbc9363a0377c3bde17dcbd3df87a9c0dcc01bb3acce19f7f958dc17e",
-      "sizeBytes": 494417291
+      "url": "https://github.com/wu798998264-crypto/shensi-notes/releases/download/v0.0.45/Shensi-0.0.45-arm64.dmg",
+      "sha256": "b111c5573ec125e34e213a8eed9a286ca44d42586cdb2da61a97d406f504a2b0",
+      "sizeBytes": 494486490
     },
     {
       "platform": "darwin",
       "arch": "x64",
-      "url": "https://github.com/wu798998264-crypto/shensi-notes/releases/download/v0.0.44/Shensi-0.0.44-x64.dmg",
-      "sha256": "86c8c3fcadda38e4e78182730fbada12e39acb1bee31435ca8a6f6d6dc195d59",
-      "sizeBytes": 526692823
+      "url": "https://github.com/wu798998264-crypto/shensi-notes/releases/download/v0.0.45/Shensi-0.0.45-x64.dmg",
+      "sha256": "71120fa0ec160052b2585d460c26c26b5e6a9638ae9b90e89f7a440c11c49f02",
+      "sizeBytes": 526701360
     }
   ]
 }
