@@ -1,15 +1,23 @@
 [
   {
     "path": "resources/skills/chushou/SKILL.md",
-    "sha256": "327e6c1aa78371b7ddde6852e4ce66119a1cf0decf17d3b68206a189c410a228"
+    "sha256": "7f5ee393d87452c10bfb44f478cb62b68f36acd648138f826ae69b96a5f36dc3"
   },
   {
     "path": "resources/skills/chushou/bundle-manifest.json",
-    "sha256": "00f2d84c4e56f0a00a129bbe558364872c8ee80dbbebbce0c77b793a1eedb37a"
+    "sha256": "319a2b73c6fcf0403daf20982fd889d76a8e52c0229aa48773665bd8c6758d53"
   },
   {
     "path": "resources/skills/chushou/references/hongguo-download.md",
     "sha256": "3500a9a77967e547c0cf041617309fbbf3a4556871696f9f1c9858a8f8eb43ba"
+  },
+  {
+    "path": "resources/skills/chushou/references/binding.md",
+    "sha256": "78305c68d2bd5a1e055868e65dcae603a79a2977b0cd706ffca1de373aac040b"
+  },
+  {
+    "path": "resources/skills/chushou/references/workflow-execution.md",
+    "sha256": "9ec1bb317f1058349c7b1dceb0a300714dbf3b9f404eb09f54aa2e76c552de77"
   },
   {
     "path": "resources/skills/chushou/scripts/download_drama.py",
@@ -21,7 +29,7 @@
   },
   {
     "path": "packages/shared/chushou-snapshot.js",
-    "sha256": "4fc03c19ead659d785a5dd5ad4319819c5c7bd3b4411e7e4e7af32461158a45a"
+    "sha256": "f4ec686fd1fb09a14e3c0c53cc3ed9b299b5c8d2ec0a1aa4220ac65baf7c364a"
   },
   {
     "path": "resources/skills/chushou/scripts/hongguo_vendor/cli.cjs",

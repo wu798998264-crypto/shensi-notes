@@ -51,7 +51,7 @@ if(!board||target)toolSets.push({type:'namespace',name:'media',description:'为�
 if(board||target)toolSets.push({type:'namespace',name:'board',description:'按任务选择目标白板；跨页面时明确提供documentId/notebookId，省略时仅使用发送时的当前白板',tools:[declaration('read','读取白板、引用顺序与草稿',{}),declaration('prepare_segments','按提供的结构追加卡片、连线和完整生成草稿，不提交生成',{expectedStateStamp:str,nodes:{type:'array',items:{type:'object'}},edges:{type:'array',items:{type:'object'}},drafts:{type:'object'}},['expectedStateStamp','nodes']),declaration('generate','使用指定共享配置提交持久媒体任务，保持原幂等与停止语义',{nodeId:str,profileId:str,channel:{enum:['image','video','audio']},prompt:str,model:str,imageCount:{type:'integer',minimum:1,maximum:4},unlimitedGeneration:{type:'boolean',description:'仅即梦图片5.5，每次1张；当前CLI未开放时明确拒绝，不改成普通生成'},references:{type:'array',items:str},aspectRatio:str,resolution:str,durationSeconds:{type:'number'},voiceId:str,speed:{type:'number'},tone:str,customTone:str,format:str},['nodeId','profileId','channel','prompt']),declaration('tasks','查询此会话白板任务；省略身份可查看本会话跨笔记本任务',{})]});
 if(canReview)toolSets.push({type:'namespace',name:'console',description:'正式生成稿核对：仅为本轮需要用户核对的剧本、资产提示词或视频/图片等生成提示词提供全文、版本和人工修改保护。普通问答、解释、进度不创建编辑器；保存稿件不等于确认生成',tools:[declaration('list','读取此对象此会话已有核对稿；无稿返回空，不创建编辑器',{}),declaration('create','提交需要核对的具体剧本或提示词最终稿，不用于普通聊天，不创建空稿',{kind:{enum:['script','prompt']},text:str},['kind','text']),declaration('read','读取核对稿所选保存版本基线，生成使用该全文而非旧消息',{consoleId:str},['consoleId']),declaration('propose','基于已读版本提交修改，迟到结果保留待采用',{consoleId:str,text:str,source:{type:'object',properties:{revision:{type:'integer'},sha256:str,currentVersionId:str},required:['revision','sha256','currentVersionId'],additionalProperties:false}},['consoleId','text','source'])]});
   if(board||target)toolSets.find(set=>set.name==='board').tools.splice(2,0,structuredClone(appendMediaTool));
-  if(board||target)toolSets.find(set=>set.name==='board').tools.push(declaration('bind_references','在已有卡片的生成草稿中保存完整提示词和真实参考位置；支持{{asset:nodeId}}，保留其他配置及历史，不提交生成',{nodeId:str,channel:{enum:['image','video','audio']},expectedStateStamp:str,prompt:str,references:{type:'array',items:str}},['nodeId','channel','expectedStateStamp','prompt','references']));
+  if(board||target)toolSets.find(set=>set.name==='board').tools.push(declaration('bind_references','在已有卡片的生成草稿中保存完整提示词和真实参考位置；支持{{asset:nodeId}}，保留其他配置及历史，不提交生成',{nodeId:str,channel:{enum:['image','video','audio']},expectedStateStamp:str,prompt:str,references:{type:'array',items:str},durationSeconds:{type:'number',minimum:0,description:'视频分段改时长时填本卡完整剧情的秒数；只换参考时省略，保留原时长。'}},['nodeId','channel','expectedStateStamp','prompt','references']));
   if(board||target)toolSets.find(set=>set.name==='board').tools.push(
    declaration('edit','先read取得基线；局部修改卡片位置/尺寸/名称/文字/颜色、增改/删除连线、复制或删除卡片、调整视口。自动保留前后历史，不修改媒体任务；被引用卡片须先解绑再删除',{expectedStateStamp:str,patch:{type:'object',additionalProperties:false,properties:{updates:{type:'array',items:{type:'object'}},edges:{type:'array',items:{type:'object'}},removeNodeIds:{type:'array',items:str},removeEdgeIds:{type:'array',items:str},duplicateNodeIds:{type:'array',items:str},viewport:{type:'object'}}}},['expectedStateStamp','patch']),
    declaration('view_media','原生视觉查看白板已有图片或生成资产，返回真实文件身份；不通过文件名猜图',{nodeId:str},['nodeId']),
@@ -62,7 +62,7 @@ if(canReview)toolSets.push({type:'namespace',name:'console',description:'正式�
   const prepareTool=toolSets.find(set=>set.name==='board')?.tools.find(t=>t.name==='prepare_segments');
   const generateTool=toolSets.find(set=>set.name==='board')?.tools.find(t=>t.name==='generate');
   if(generateTool)Object.assign(generateTool.inputSchema.properties,{libTvOperation:{enum:['hd','final'],description:'LibTV视频高清或有效期7天内Seedance2.5样片转正片，产生新收费任务；仅用户要求时调用'},libTvSourceNodeId:{type:'string',description:'同一白板、同一LibTV配置已完成的视频节点；后处理references须为空'},libTvHdModel:{type:'string',description:'官方高清模型名称；省略使用官方默认'},libTvContextNodeId:{type:'string',description:'LibTV视频文档上下文：当前白板文档附件节点；模型须支持'},libTvContextLink:{type:'string',description:'LibTV视频链接上下文，与文档上下文互斥；模型须支持'}});
-  if(prepareTool)prepareTool.description='追加新文本卡片和来源连线；drafts也可批量保存已有卡片的完整生成草稿与配置，保留其他通道及历史。只更新草稿时nodes传[]，不要把已有卡片重复放入nodes。不提交生成。';
+  if(prepareTool)prepareTool.description='追加新文本卡片和来源连线；drafts也可批量保存已有卡片的完整生成草稿与配置，保留其他通道及历史。视频按完整剧情分卡，每卡在drafts中写实际durationSeconds并回读。只更新草稿时nodes传[]，不要把已有卡片重复放入nodes。不提交生成。';
   for(const set of toolSets)for(const tool of set.tools||[])if((set.name==='board'&&tool.name==='view_media')||(set.name==='attachments'&&tool.name==='view')){
    tool.inputSchema.properties.original={type:'boolean'};tool.description+=' 大图默认传输1600像素视觉预览，原图不变；检查细字/边缘/透明度时传original=true。';
   }
@@ -144,7 +144,7 @@ else if(key==='models.list'){const catalog=(await models.list()).profiles;value=
      value=await media.action(args.action,{...operationScope,jobId:args.jobId,signal});
     }
     else if((board||target)&&key==='board.bind_references'){
-     const {drafts}=await compileChushouDrafts(service,{id:notebookId,documentId},{drafts:{[args.nodeId]:{channel:args.channel,prompt:args.prompt,references:args.references,...Object.fromEntries(['promptMentions','promptReferenceSequence'].filter(k=>Object.hasOwn(args,k)).map(k=>[k,args[k]]))}}},{validateReferences:true});
+     const {drafts}=await compileChushouDrafts(service,{id:notebookId,documentId},{drafts:{[args.nodeId]:{channel:args.channel,prompt:args.prompt,references:args.references,...(args.channel==='video'&&args.durationSeconds!==undefined?{durationSeconds:args.durationSeconds}:{}),...Object.fromEntries(['promptMentions','promptReferenceSequence'].filter(k=>Object.hasOwn(args,k)).map(k=>[k,args[k]]))}}},{validateReferences:true});
      value=await service.bindBoardDraft(notebookId,{documentId,nodeId:args.nodeId,expectedStateStamp:args.expectedStateStamp,operationId,draft:drafts[args.nodeId],signal});
     }
     else if((board||target)&&key==='board.append_media'){const {notebookId:ignored,...mediaArgs}=args;value=await appendAgentMedia(service,{id:notebookId,documentId,operationId,signal},target?mediaArgs:args);}
@@ -153,14 +153,17 @@ else if(key==='models.list'){const catalog=(await models.list()).profiles;value=
       const live=await service.load(notebookId),current=live.state.documents[documentId]?.canvas?.coreGenerationDrafts?.[args.nodeId];
       const draft=current?.channel===args.channel?current:current?.channels?.[args.channel];
       const references=args.references||[];
-      if(draft?.prompt===args.prompt&&JSON.stringify(draft.references)===JSON.stringify(references))binding={promptMentions:draft.promptMentions,promptReferenceSequence:draft.promptReferenceSequence};
+      if(draft?.prompt===args.prompt&&JSON.stringify(draft.references)===JSON.stringify(references)){
+       binding={promptMentions:draft.promptMentions,promptReferenceSequence:draft.promptReferenceSequence};
+       if(args.channel==='video'&&args.durationSeconds===undefined&&draft.durationSeconds!=null&&(!draft.profileId||draft.profileId===args.profileId)&&(!args.model||args.model===draft.model))binding.durationSeconds=draft.durationSeconds;
+      }
       const fields=['channel','profileId','prompt','model','imageCount','unlimitedGeneration','aspectRatio','resolution','durationSeconds','voiceId','speed','tone','customTone','format','libTvOperation','libTvSourceNodeId','libTvHdModel','libTvContextNodeId','libTvContextLink'];
       const requested={...Object.fromEntries(fields.filter(k=>Object.hasOwn(args,k)).map(k=>[k,args[k]])),references,...binding,...Object.fromEntries(['promptMentions','promptReferenceSequence'].filter(k=>Object.hasOwn(args,k)).map(k=>[k,args[k]]))};
       const compiled=(await compileChushouDrafts(service,{id:notebookId,documentId},{drafts:{[args.nodeId]:requested}},{validateReferences:true})).drafts[args.nodeId];
       // Save the same draft the manual toolbar saves before submitting. A CAS
       // conflict must stop before billing; a failed provider still leaves it editable.
       await service.bindBoardDraft(notebookId,{documentId,nodeId:args.nodeId,expectedStateStamp:live.stateStamp,operationId:operationId+'-draft',draft:compiled,signal});
-      binding={promptMentions:compiled.promptMentions,promptReferenceSequence:compiled.promptReferenceSequence};
+      binding={...binding,promptMentions:compiled.promptMentions,promptReferenceSequence:compiled.promptReferenceSequence};
       submission={...args,prompt:compiled.prompt,references:compiled.references};
      }
      value=await media.action('submit',{...submission,...binding,...operationScope,submissionId:operationId,signal});
@@ -212,7 +215,7 @@ else if(key==='models.list'){const catalog=(await models.list()).profiles;value=
   }
   else if(engine==='codex_api')result=await runBundled({appRoot,machineRoot,...options,onProviderRequest:diagnostics=>budget?.providerCall(body,diagnostics),singleProviderAttempt:await budget?.active()});
   else if(engine==='codex')result=await runConfiguredCodexSession({appRoot,machineRoot,...options,messages:[{role:'user',content:body.text}],system:contextBlocks.map(b=>`# ${b.name}\n${b.text}`).join('\n\n'),shensiRuntime:{stage:'conversation_agent',sessionId:body.requestId,agentDriven:true,progressAware:true}});
-  else {const run={opencode:runOpenCodeAgent,deepseek_opencode:runDeepSeekOpenCodeAgent,claude_code:runClaudeCodeAgentTurn,workbuddy:runExternalCliAgent,custom:runExternalCliAgent}[engine];if(!run)throw failure('运行器未接入，不会替换为普通对话');const nativeHost=await startConversationAgentMcp({tools:runtime,signal,onToolEvent:onEvent}),cwd=workingDirectory||join(machineRoot,'agent-scratch',body.requestId);await mkdir(cwd,{recursive:true});try{result=await run({...settings,engine,outputMode:body.outputMode,prompt:body.text,contextBlocks,nativeHost,cwd,signal,permissionContract,requestApproval,onEvent,isWaitingForUser,allowEdits:permissionContract.mode!=='shensi_only',allowNetwork:permissionContract.mode!=='shensi_only',environment:agentChildEnvironment(),maxTurns:96,timeoutMs:Math.max(600000,Number(settings.timeoutMs)||0)});}finally{await nativeHost.close();}}
+  else {const run={opencode:runOpenCodeAgent,deepseek_opencode:settings.adapter==='api'?runOpenCodeAgent:runDeepSeekOpenCodeAgent,claude_code:runClaudeCodeAgentTurn,workbuddy:runExternalCliAgent,custom:runExternalCliAgent}[engine];if(!run)throw failure('运行器未接入，不会替换为普通对话');const nativeHost=await startConversationAgentMcp({tools:runtime,signal,onToolEvent:onEvent}),cwd=workingDirectory||join(machineRoot,'agent-scratch',body.requestId);await mkdir(cwd,{recursive:true});try{result=await run({...settings,engine,outputMode:body.outputMode,prompt:body.text,contextBlocks,nativeHost,cwd,signal,permissionContract,requestApproval,onEvent,isWaitingForUser,allowEdits:permissionContract.mode!=='shensi_only',allowNetwork:permissionContract.mode!=='shensi_only',environment:agentChildEnvironment(),maxTurns:96,timeoutMs:Math.max(600000,Number(settings.timeoutMs)||0)});}finally{await nativeHost.close();}}
   return {...result,receipts,engine};
  }
  return {run};

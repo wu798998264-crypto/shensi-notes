@@ -1,5 +1,6 @@
 import {escapeHtml as h} from './editor.js';
 import {modelFieldsMarkup,chatIcon} from './chat-layout.js';
+import {pickerProfileId} from './model-capabilities.js';
 import {defaultTextProfile,textModelSelection,textModelSummary} from './text-model-selection.js';
 
 async function readTextProfiles(){
@@ -14,7 +15,7 @@ async function readTextProfiles(){
 export function mountTaskModelPicker(host,{profiles,selection={},changed=()=>{},loadProfiles=readTextProfiles}){
  let value={...selection},opened=false,disposed=false,loading=false,refreshError='',refreshEpoch=0;
  const available=()=>profiles.filter(p=>(!p.aliasFor||p.id===value.profileId)&&p.enabled!==false&&(p.channel==='text'||p.channels?.includes('text')));
- function normalize(){const profile=value.profileId?available().find(p=>p.id===value.profileId):defaultTextProfile(profiles);if(profile)value={profileId:profile.id,...textModelSelection(profile,value)};return profile;}
+ function normalize(){value.profileId=pickerProfileId(profiles,value.profileId);const profile=value.profileId?available().find(p=>p.id===value.profileId):defaultTextProfile(profiles);if(profile)value={profileId:profile.id,...textModelSelection(profile,value)};return profile;}
  function snapshot(){return Object.fromEntries(['profileId','model','reasoningEffort','speedMode'].map(k=>[k,value[k]||'']));}
  function render(){
   const profile=normalize(),items=available(),unavailable=!!value.profileId&&!profile;

@@ -1,5 +1,16 @@
 import {escapeHtml as h} from './editor.js';
 const english={
+ 'thirdparty.browser':['Browser','Browse sites with separate profiles, bookmarks and downloads.'],
+ 'official.nutstore':['Nutstore sync','Sync notebooks with Nutstore and review file conflicts.'],
+ 'thirdparty.doubao':['Doubao accounts','Manage Doubao accounts for chat and media generation.'],
+ 'thirdparty.novel-publisher':['Novel publisher','Prepare chapters and publish novels.'],
+ 'thirdparty.glyph-workshop':['Glyph workshop','Create and organize glyphs and alphabets.'],
+ 'thirdparty.text-reader':['Document reader','Read documents aloud with a selected voice.'],
+ 'thirdparty.map-workshop':['Map workshop','Draw and edit maps for your work.'],
+ 'thirdparty.character-chat':['Character parlor','Talk to characters in the context of your work.'],
+ 'thirdparty.local-h3':['Local H3','Run H3 video generation on this computer.'],
+ 'thirdparty.depth-explorer':['Depth explorer','Explore depth in whiteboard images.'],
+ 'thirdparty.fenjue':['Fenjue','Writing skills and reference documents.'],
  'thirdparty.calendar':['Calendar and tasks','Calendar, task reminders and date-linked documents across notebooks.'],
  'official.works':['Work mode','Organize novels and screenplays with manuscript, outline, setting, memory and reference sections.'],
  'official.graph':['3D knowledge graph','Explore real documents and their incoming and outgoing links in a draggable graph.'],
@@ -8,7 +19,7 @@ const english={
  'official.whiteboard-generation':['Whiteboard generation','Chat, skills and media generation with shared text, image, video and audio configurations.'],
  'official.editor-toolbar':['Text formatting toolbar','Formatting, colors, lists and media insertion. Search, backlinks and editor modes remain available when disabled.']
 };
-export function pluginCopy(plugin,language){const native=plugin.translations?.[language];if(native)return {name:native.name||plugin.name,description:native.description||plugin.description};const translated=language==='en-US'&&plugin.category==='official'?english[plugin.id]:null;return {name:translated?.[0]||plugin.name,description:translated?.[1]||plugin.description};}
+export function pluginCopy(plugin,language){const native=plugin.translations?.[language];if(native)return {name:native.name||plugin.name,description:native.description||plugin.description};const translated=language==='en-US'?english[plugin.id]:null;return {name:translated?.[0]||plugin.name,description:translated?.[1]||plugin.description};}
 export function pluginSwitch(plugin,attribute='data-plugin-toggle',language='zh-CN'){
  return `<button type="button" role="switch" class="plugin-switch" ${attribute}="${h(plugin.id)}" aria-label="${h(pluginCopy(plugin,language).name)}" title="${plugin.available?(language==='en-US'?'Install and enable':'安装并启用'):(plugin.enabled?(language==='en-US'?'Disable':'停用'):(language==='en-US'?'Enable':'启用'))}" aria-checked="${!plugin.available&&plugin.enabled===true}"><span></span></button>`;
 }

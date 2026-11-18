@@ -61,13 +61,11 @@ export function generationParameters(channel, profile = {}, saved = {}, {resetMo
     values.resolution = choice(values.resolution, resolutions, defaultVideoResolution(caps, values.generationMode));
     const timing=videoTimingForCapabilities(caps,values,references);
     const derived = timing.durationDerivedFromReference;
-    // An unbound preparation draft has no provider capability to normalize
-    // against. Opening it must not silently turn an authored 8s segment into 5s.
-    // Once a real connection is chosen its actual catalog remains authoritative.
-    const unbound = !profile.id && !profile.model && !selected && !profile.capabilities;
+    // Keep the authored duration when opening a draft. The picker can then
+    // show a conflicting supported range without overwriting the storyboard.
     const draftDuration = Number(saved.durationSeconds);
-    const durations = derived ? [] : list(values.generationMode === 'long_video' ? caps.longVideoDurationSeconds : timing.durationSeconds, unbound && draftDuration > 0 && Number.isFinite(draftDuration) ? [draftDuration] : [5]);
-    const preserveRequested=timing.enforced&&!resetModel&&Number.isFinite(draftDuration)&&draftDuration>0&&values.generationMode!=='long_video';
+    const preserveRequested=!resetModel&&Number.isFinite(draftDuration)&&draftDuration>0&&values.generationMode!=='long_video';
+    const durations = derived ? [] : list(values.generationMode === 'long_video' ? caps.longVideoDurationSeconds : timing.durationSeconds, preserveRequested&&!timing.enforced ? [draftDuration] : [5]);
     values.durationSeconds = derived || values.generationMode === 'smart_multiframe' ? 0 : preserveRequested?draftDuration:choice(values.durationSeconds, durations, durations.includes(4)?4:durations[0]);
     return {values, ratios, modes, unavailableModes:caps.unavailableGenerationModes||[], resolutions, durations, derived,timing,referenceLimits:caps.referenceLimits,unavailableReason};
   }

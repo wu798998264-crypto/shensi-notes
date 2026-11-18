@@ -7,7 +7,7 @@ import {openModelVerification} from './model-verification.js';
 import {profileChannels,profileSupports} from './model-capabilities.js';
 import {mountModelCatalog} from './model-catalog.js';
 import {escapeHtml as h} from './editor.js';
-import {retiredGptModel} from './gpt-model-policy.js';
+import {removedModel} from './gpt-model-policy.js';
 
 const labels={text:'文本',audio:'音频',video:'视频',image:'图片',multimodal:'多模态'};
 const engines=[['codex_api','神思运行器（API）'],['codex','Codex 本地 Agent'],['opencode','OpenCode'],['deepseek_opencode','OpenCode + DeepSeek'],['claude_code','Claude Code'],['workbuddy','WorkBuddy'],['custom','自定义本地 Agent']];
@@ -51,7 +51,7 @@ root.onclick=async event=>{try{const button=event.target.closest('button');if(!b
   const externalSelected=!profile.browserProfileId;
   const browserBinding='<div data-browser-source-field><label>凭证来源<select name="browserProfileId"><option value="" disabled>请选择凭证来源</option><option value="'+EXTERNAL_BROWSER+'" '+(externalSelected?'selected':'')+'>外部浏览器</option>'+browserProfiles.map(p=>'<option value="'+h(p.id)+'" '+(profile.browserProfileId===p.id?'selected':'')+'>'+h(p.name)+'</option>').join('')+(profile.browserProfileId&&!browserProfiles.some(p=>p.id===profile.browserProfileId)?'<option selected value="'+h(profile.browserProfileId)+'">原配置已删除或浏览器未启用，请重新绑定</option>':'')+'</select></label><label data-external-browser-account>外部浏览器账号<select name="dreaminaCliProfile"><option value="">请选择已有的账号来源</option>'+externalBrowsers.map(p=>'<option value="'+h(p.profileId)+'" '+(profile.dreaminaCliProfile===p.profileId?'selected':'')+'>'+h(p.name+' · '+p.browserName)+'</option>').join('')+(profile.dreaminaCliProfile&&!externalBrowsers.some(p=>p.profileId===profile.dreaminaCliProfile)?'<option selected value="'+h(profile.dreaminaCliProfile)+'">原账号来源不可用，请核验后重选</option>':'')+'</select>'+(sourceError?'<span>'+h(sourceError)+'</span>':'')+'</label></div><p>外部浏览器用于打开账号的登录与授权网页；选择内置浏览器配置后，按该配置独立授权。切换网页配置不改变运行中任务的账号。</p>';
   const field=(label,key,type='text')=>`<label>${label}<input name="${key}" type="${type}" value="${h(profile[key]??'')}" ${key==='apiKey'?'autocomplete="new-password" placeholder="留空保留已有密钥"':''}></label>`;
-  const modelSelect=(key,value='',capability='')=>`<select name="${key}" data-catalog-model="${capability}" ${retiredGptModel(value)?`data-retired-model="${h(value)}"`:strictMediaCatalog(profile)&&value?`data-unavailable-model="${h(value)}"`:''} aria-label="${capability?labels[capability]+'模型':'默认模型'}"><option value="">${capability?'使用默认模型':'请选择模型'}</option>${retiredGptModel(value)?'<option value="" disabled selected>原 GPT 旧型号已移除，请选择模型</option>':value&&!strictMediaCatalog(profile)?`<option value="${h(value)}" selected>${h(modelLabel(value))}</option>`:''}</select>`;
+  const modelSelect=(key,value='',capability='')=>`<select name="${key}" data-catalog-model="${capability}" ${removedModel(value,profile)?`data-retired-model="${h(value)}"`:strictMediaCatalog(profile)&&value?`data-unavailable-model="${h(value)}"`:''} aria-label="${capability?labels[capability]+'模型':'默认模型'}"><option value="">${capability?'使用默认模型':'请选择模型'}</option>${removedModel(value,profile)?'<option value="" disabled selected>原型号已移除，请选择模型</option>':value&&!strictMediaCatalog(profile)?`<option value="${h(value)}" selected>${h(modelLabel(value))}</option>`:''}</select>`;
   const textAgent=profile.channel==='text'||profile.channel==='multimodal'&&(!profile.id||profileChannels(profile).includes('text'));
   const multimodalFields=profile.channel==='multimodal'?'<fieldset class="model-capability-fields"><legend>可用能力与模型映射</legend>'+['text','image','video','audio'].map(key=>`<div class="model-capability-field"><span>${labels[key]}</span><div class="model-capability-row">${modelSelect('model_'+key,profile.capabilityModels?.[key]||'',key)}<input type="checkbox" name="capability_${key}" aria-label="启用${labels[key]}能力" ${profileChannels(profile).includes(key)?'checked':''}></div></div>`).join('')+'</fieldset>':'';
   const engineSelect=`<label>任务运行器<select name="agentEngine">${engines.map(([engine,label])=>`<option value="${engine}" ${(profile.agentEngine||(profile.adapter==='api'?'codex_api':'codex'))===engine?'selected':''}>${label}</option>`).join('')}</select></label><label>权限范围<select name="agentPermissionMode">${permissions.map(([mode,label])=>`<option value="${mode}" ${(profile.agentPermissionMode||'shensi_only')===mode?'selected':''}>${label}</option>`).join('')}</select></label><label>Codex 凭据来源<select name="credentialSource"><option value="" ${!profile.credentialSource?'selected':''}>隔离运行环境</option><option value="codex_session" ${profile.credentialSource==='codex_session'?'selected':''}>已登录的 Codex 会话</option></select></label><p class="model-form-note">神思运行器使用当前 API 配置；其他运行器调用对应的本地 Agent。选择“已登录的 Codex 会话”会使用本机现有 Codex 登录，不复制凭据。白板和文档任务共用此配置。</p>`;
@@ -69,16 +69,42 @@ root.onclick=async event=>{try{const button=event.target.closest('button');if(!b
    box.hidden=!cli;box.nextElementSibling.hidden=!cli;binding.disabled=!cli||!!profile.memberRef;binding.required=cli;
    source.closest('label').hidden=!external;source.required=external;source.disabled=!external;
    for(const key of ['credentialPageUrl','credentialSource']){const field=form.querySelector('[name='+key+']');if(field){field.closest('label').hidden=!cli;field.disabled=!cli||!!profile.memberRef;}}
-   const note=form.querySelector('.model-form-note');if(note){note.dataset.cliNote??=note.textContent;note.textContent=cli?note.dataset.cliNote:'神思运行器使用当前 API 配置；白板和文档任务共用此配置。';}
+   const note=form.querySelector('.model-form-note');
+   if(note){
+    note.dataset.cliNote??=note.textContent;
+    const deepSeekApi=!cli&&form.querySelector('[name=agentEngine]')?.value==='deepseek_opencode';
+    note.textContent=deepSeekApi?'OpenCode 使用此配置的 DeepSeek API 密钥执行白板和文档任务。':cli?note.dataset.cliNote:'神思运行器使用当前 API 配置；白板和文档任务共用此配置。';
+   }
    const credentialActions=form.querySelector('.model-credential-actions');if(credentialActions){credentialActions.querySelector('p').textContent=cli?'核验与凭证页面使用已保存的配置，不使用尚未保存的接口或密钥。':'核验已保存的供应商接口与密钥，不需要浏览器授权。';const open=credentialActions.querySelector('[data-model-credential-action=open]');if(open)open.hidden=!cli||!hasCredentialPage(profile);credentialActions.querySelector('[data-model-credential-action=verify]').textContent=cli?'核验':'核验接口';}
   };laneVisibility();form.addEventListener('change',laneVisibility);
   if(id){const box=document.createElement('section');box.className='setting-block model-credential-actions';box.innerHTML='<p>核验与凭证页面使用已保存的配置，不使用尚未保存的接口或密钥。</p><div class="setting-inline"></div>';for(const [label,action]of [['核验','verify'],...(hasCredentialPage(profile)?[['打开凭证页面','open']]:[])]){const b=document.createElement('button');b.type='button';b.textContent=label;b.dataset.modelCredentialAction=action;b.onclick=()=>void openModelVerification(context,profile,{action,onBrowserOpened:result=>{if(!profile.browserProfileId&&result.browserProfileId)form.querySelector('[name=browserProfileId]').value=result.browserProfileId;editDrafts.set(id,Object.fromEntries([...form.querySelectorAll('[name]')].map(el=>[el.name,el.type==='checkbox'?el.checked:el.value])));suspended=true;form.querySelector('[data-choice=cancel]').click();}}).catch(error=>context.toast(error.message));box.lastElementChild.append(b);}form.querySelector('h2').after(box);}
-  const draft=editDrafts.get(id);if(draft)for(const el of form.querySelectorAll('[name]'))if(Object.hasOwn(draft,el.name)){if(el.type==='checkbox')el.checked=draft[el.name];else{if(el.tagName==='SELECT'&&![...el.options].some(o=>o.value===draft[el.name])){if(el.hasAttribute('data-catalog-model')&&strictMediaCatalog(profile))el.dataset.unavailableModel=draft[el.name];else el.add(new Option(draft[el.name],draft[el.name]));}el.value=draft[el.name];}}
+  const draft=editDrafts.get(id);if(draft)for(const el of form.querySelectorAll('[name]'))if(Object.hasOwn(draft,el.name)){
+   const value=draft[el.name];
+   if(el.type==='checkbox'){el.checked=value;continue;}
+   if(el.hasAttribute('data-catalog-model')&&removedModel(value,{...profile,...draft})){el.dataset.retiredModel=value;el.value='';continue;}
+   if(el.tagName==='SELECT'&&![...el.options].some(o=>o.value===value)){
+    if(el.hasAttribute('data-catalog-model')&&strictMediaCatalog(profile))el.dataset.unavailableModel=value;else el.add(new Option(value,value));
+   }
+   el.value=value;
+  }
   const mediaOnly=()=>{const checkbox=form.querySelector('[name=capability_text]');if(checkbox){const canvas=form.querySelector('[name=provider]').value==='即梦';checkbox.disabled=canvas;form.querySelector('[name=model_text]').disabled=canvas;if(canvas)checkbox.checked=false;}};mediaOnly();form.addEventListener('change',mediaOnly);
   laneVisibility();mountExternalBrowser(form,{profile:{...profile,...draft},sources:authorizationSources,call,toast:context.toast});const catalog=mountModelCatalog(form,{profile,call});
   if(profile.memberRef)for(const key of ['provider','adapter','protocol','baseUrl','model','apiKey','cliPath','cliArgs','agentEngine','credentialSource','dreaminaCliProfile','browserProfileId','credentialPageUrl']){const input=form.querySelector(`[name=${key}]`);if(input){input.disabled=true;input.title='会员模型接口及密钥由账号服务管理';}}
-  form.querySelector('[name=provider]').onchange=event=>{laneVisibility();const preset=data.providers.find(item=>item.id===event.target.value);if(!id){for(const key of ['baseUrl','protocol']){const input=form.querySelector(`[name=${key}]`);if(!input.value&&preset?.api?.[key])input.value=preset.api[key];}}void catalog.load();};
-  if(textAgent){form.querySelector('[name=adapter]').onchange=event=>{form.querySelector('[name=agentEngine]').value=event.target.value==='api'?'codex_api':'codex';};form.querySelector('[name=agentEngine]').onchange=event=>{form.querySelector('[name=adapter]').value=event.target.value==='codex_api'?'api':'cli';};}
+  form.querySelector('[name=provider]').onchange=event=>{laneVisibility();const preset=data.providers.find(item=>item.id===event.target.value);if(!id){for(const key of ['baseUrl','protocol']){const input=form.querySelector(`[name=${key}]`);if((!input.value||event.target.value==='DeepSeek')&&preset?.api?.[key])input.value=preset.api[key];}}void catalog.load();};
+  if(textAgent){
+   const engine=form.querySelector('[name=agentEngine]'),adapter=form.querySelector('[name=adapter]');
+   adapter.onchange=()=>{engine.value=adapter.value==='api'?'codex_api':'codex';};
+   engine.onchange=()=>{
+    adapter.value=['codex_api','deepseek_opencode'].includes(engine.value)?'api':'cli';
+    if(engine.value==='deepseek_opencode'){
+     form.querySelector('[name=provider]').value='DeepSeek';
+     form.querySelector('[name=baseUrl]').value='https://api.deepseek.com/v1';
+     form.querySelector('[name=protocol]').value='chat_completions';
+    }
+    laneVisibility();
+    void catalog.load();
+   };
+  }
   const answer=await pending;if(answer.value!=='save'){if(!suspended)editDrafts.delete(id);return;}
   const next=modelAuthorizationFields({...profile,...Object.fromEntries(Object.entries(answer).filter(([key])=>!['value','apiKey'].includes(key))),channel:profile.channel,enabled:answer.enabled==='true'});
   if(profile.channel==='multimodal'){next.channels=['text','image','video','audio'].filter(key=>answer['capability_'+key]==='on');next.capabilityModels=Object.fromEntries(next.channels.map(key=>[key,answer['model_'+key]||'']));for(const key of ['text','image','video','audio']){delete next['capability_'+key];delete next['model_'+key];}}

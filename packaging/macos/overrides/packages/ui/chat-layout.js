@@ -1,6 +1,6 @@
 import {modelLabel} from './model-label.js';
 import {uiGlyph} from './ui-glyph.js';
-import {profileSupports,profileHasMedia} from './model-capabilities.js';
+import {profileSupports,profileHasMedia,pickerProfileId} from './model-capabilities.js';
 import {bindChatScroll} from './chat-scroll.js';
 import {escapeHtml as h} from './editor.js';
 import {sanitizeDocumentHtml} from '/legacy/document-sanitize.js';
@@ -42,6 +42,8 @@ function choiceMarkup(conversation){
 export function chatSurfaceMarkup({conversation:c,profiles,profileId,board,currentDocument,documents={},history,events,queue='',consoleForMessage=()=>'',assetUrl}){
  const lastSupplements=new Map(),turns=new Map();for(const m of c.messages){if(m.supplementOf)lastSupplements.set(m.supplementOf,m);if(m.run)turns.set(m.requestId,m);}
  const turnMarkup=message=>{const requestId=message.supplementOf||message.requestId,last=lastSupplements.get(requestId);return last&&last!==message?'':turnActivityMarkup(message.supplementOf?turns.get(requestId)||message:message,c);};
+ profileId=pickerProfileId(profiles,profileId);
+ profiles=profiles.filter(p=>!p.aliasFor||p.id===profileId);
  profileId=profiles.find(p=>p.id===profileId&&p.enabled!==false&&profileSupports(p,'text'))?.id||defaultTextProfile(profiles)?.id||'';
  const profile=profiles.find(p=>p.id===profileId),archived=!!c.archived,running=c.status==='running',model=textModelSummary(profile,c);
  return `<h2 class="chat-visually-hidden">对话控制</h2><header class="chat-panel-toolbar" aria-label="对话快捷操作"><div class="chat-panel-toolbar-actions"><button type="button" class="quick-model-button" data-chat-model-toggle title="切换本次任务模型" aria-label="切换本次任务模型" aria-haspopup="dialog" aria-expanded="false"><span data-chat-model-label>${h(model)}</span>${chatIcon('\uE70D')}</button>${chatButton('data-chat-new','新建对话','\uE710')}${chatButton('data-chat-history','历史对话','\uE81C','aria-expanded="false"')}${chatButton('data-chat-export','导出当前对话为 Markdown','\uE792')}</div></header>

@@ -108,6 +108,7 @@ export function createModelVerification({models,desktop={},vault,browser,doubao,
    return result({ok:checks.every(c=>c.ok),checks,scope:'cli-capabilities',generationPermissionChecked:false,message:checks.map(c=>c.channel+'：'+c.message).join('\n')});
   }
   if(p.adapter==='api'){
+   if(p.agentEngine==='deepseek_opencode')return result(await models.test({profileId:p.id}));
    if(usesVideoApiReadiness(p)){await models.assertAvailable(p.id);return result(await checkVideoApiReadiness(await models.resolve(p.id,'video')));}
    await models.assertAvailable(p.id);const catalog=await models.catalog({profileId:p.id,refresh:true});
    const selectedModels=[...new Set([p.model,...Object.values(p.capabilityModels||{})].filter(Boolean))],selectedModel=selectedModels.filter(id=>!catalog.models.some(m=>m.id===id)).join('、'),selectedModelListed=selectedModels.length?!selectedModel:null;

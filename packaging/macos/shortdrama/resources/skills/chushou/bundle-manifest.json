@@ -1,10 +1,10 @@
 {
   "schema": 2,
   "skill": "chushou",
-  "capturedAt": "2026-11-17",
+  "capturedAt": "2026-11-18",
   "source": "public execution-only skill; no personal creative rules or runtime data",
-  "mainSha256": "327e6c1aa78371b7ddde6852e4ce66119a1cf0decf17d3b68206a189c410a228",
-  "revision": "5ea42f6c84cc31eef0443eb5016bd8ad8769d3a031e273531fe3d9d53f5ae51e",
+  "mainSha256": "7f5ee393d87452c10bfb44f478cb62b68f36acd648138f826ae69b96a5f36dc3",
+  "revision": "ae9c0b69fec571987403c1e1297f0a5da873a5e7ad3122a71ea7e7b92c94d99a",
   "files": [
     {
       "path": "LICENSE",
@@ -18,8 +18,8 @@
     },
     {
       "path": "SKILL.md",
-      "bytes": 7157,
-      "sha256": "327e6c1aa78371b7ddde6852e4ce66119a1cf0decf17d3b68206a189c410a228"
+      "bytes": 7938,
+      "sha256": "7f5ee393d87452c10bfb44f478cb62b68f36acd648138f826ae69b96a5f36dc3"
     },
     {
       "path": "references/audio-transcription.md",
@@ -28,8 +28,8 @@
     },
     {
       "path": "references/binding.md",
-      "bytes": 1933,
-      "sha256": "df27259d0864af01c9e19d41c568b684496e5757e66940b1d24833707f672e6f"
+      "bytes": 2247,
+      "sha256": "78305c68d2bd5a1e055868e65dcae603a79a2977b0cd706ffca1de373aac040b"
     },
     {
       "path": "references/downloads.md",
@@ -103,8 +103,8 @@
     },
     {
       "path": "references/workflow-execution.md",
-      "bytes": 5565,
-      "sha256": "4c39d8063a095c3c56116a47cf16c43af470c8470d4af8fc1984f2f1d51980e7"
+      "bytes": 7118,
+      "sha256": "9ec1bb317f1058349c7b1dceb0a300714dbf3b9f404eb09f54aa2e76c552de77"
     },
     {
       "path": "scripts/build_drama_documents.py",

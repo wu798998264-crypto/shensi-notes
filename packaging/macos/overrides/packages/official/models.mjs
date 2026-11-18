@@ -6,14 +6,16 @@ import {PROVIDER_PRESETS,getProviderPreset,getProviderModelOptions,imageModelCap
 import {createGenerationProfile} from './legacy/generation-profiles.js';
 import {publicGenerationModels} from './generation-models.mjs';
 import {localModelCatalog,fetchModelCatalog,cliModelCatalog} from './model-catalog.mjs';
-import {textModelSelection} from '../ui/text-model-selection.js';
-import {currentGptCatalog,currentGptModels,retiredGptModel} from '../ui/gpt-model-policy.js';
+import {findTextModel,textModelSelection} from '../ui/text-model-selection.js';
+import {currentGptCatalog,currentGptModels,removedModel,gptCatalogChannels} from '../ui/gpt-model-policy.js';
 import {usesVideoApiReadiness,checkVideoApiReadiness} from './video-api-readiness.mjs';
 import {unifiedCanvasProfile,usesUnifiedCanvas,canvasAccountId} from '../ui/media-model-policy.js';
 import {originalCanvasSource,originalCanvasSources} from './dreamina-canvas-source.mjs';
 import {mergeDreaminaAccounts,canvasProfileAliases} from './dreamina-account-migration.mjs';
 import {mergeLegacyMultimodalAccounts,mergedProfileAliases,updateMergedChannelProfiles,carryMergedCatalogs} from './multimodal-account-migration.mjs';
 import {createExternalBrowsers} from './external-browsers.mjs';
+import {verifyDeepSeekApi} from './deepseek-api.mjs';
+import {isOfficialDeepSeekEndpoint} from './legacy/cli/deepseek-opencode-config.mjs';
 import {apiKeyAuthorization} from '../ui/model-authorization-source.js';
 export const legacyImportFields=Object.freeze(['name','provider','adapter','protocol','baseUrl','model','cliPath','cliArgs','reasoningEffort','speedMode','temperature','maxOutputTokens','timeoutMs','aspectRatio','resolution','durationSeconds','voice','dreaminaCliProfile','agentEngine','agentPermissionMode','credentialSource','webSearchEnabled','executionMode','executionModes','agentModelId','chatModelId','agentReasoningEffort','agentSpeedMode','modelPolicy','providerId','runnerId','runtimeProfileId','runtimeConfigPath','credentialSharing','credentialSharedFromChannel','credentialSharedFromProfileId','chatAdapter','chatProtocol','chatBaseUrl','systemManaged','reserved']);
 
@@ -34,8 +36,30 @@ export function createModelService({dataRoot,desktop={},consolidateLegacyAccount
  const hasSecret=async(key,snapshot)=>session.has(key)?!!session.get(key):!!(snapshot||await vault.read())[key];
  const putSecret=async(key,value,{remember=true}={})=>{identity(key);if(typeof value!=='string'||value.length>(key.startsWith('member-state')?768*1024:32000))throw failure('凭据格式无效');if(secure){const sealed=value&&remember?await desktop.encryptSecret(value):'';await vault.update(s=>{if(sealed)s[key]=sealed;else delete s[key];return s;});}session.set(key,value);};
  const authoritativeFreeCatalog=(p,catalog)=>getProviderPreset(p.provider)?.public===true&&catalog?.source==='remote'&&catalog.complete===true;
- const textModelsFor=(p,catalog)=>{const known=localModelCatalog(p),byId=new Map(known.map(item=>[item.id,item]));for(const remote of catalog?.models||[]){if(!remote?.id)continue;const knownItem=byId.get(remote.id)||{},channels=[...new Set([...(remote.channels||[]),...(knownItem.channels||[])])],capabilities=Object.fromEntries(['reasoningLevels','defaultReasoningLevel','speedModes'].filter(key=>Object.hasOwn(remote,key)).map(key=>[key,remote[key]]));if(!channels.length&&p.channel==='text')channels.push('text');byId.set(remote.id,{...remote,...knownItem,...capabilities,id:remote.id,label:remote.label||knownItem.label||remote.id,channels});}const allowed=authoritativeFreeCatalog(p,catalog)?new Set(catalog.models.map(m=>m.id)):null;return currentGptModels([...byId.values()]).filter(item=>(!allowed||allowed.has(item.id))&&(item.channels.includes('text')||item.id===p.model)).map(item=>({id:item.id,label:item.label||item.id,reasoningLevels:item.reasoningLevels||[],defaultReasoningLevel:item.defaultReasoningLevel||'',speedModes:item.speedModes||[]}));};
- const publicProfile=async(p,snapshot)=>{p=unifiedCanvasProfile(p);const catalog=(snapshot?.catalogs||await catalogs.read())[catalogKey(p)],mediaModels=publicGenerationModels({...p,modelCatalogModels:catalog?.models}),textModels=profileSupports(p,'text')?textModelsFor(p,catalog):[],speech=await speechMetadata(p);return {...p,enabled:p.enabled!==false&&await sourceActive(p),...(p.adapter==='browser'?{capabilities:{}}:p.channel==='image'?{capabilities:imageModelCapabilities(p.provider,p.model)}:p.channel==='video'?{capabilities:videoModelCapabilities(p.provider,p.model)}:{}),...(speech?{speechCapabilities:speech.capabilities}:{}),mediaModels,textModels,modelCatalogStatus:catalog?{source:catalog.source,complete:catalog.complete,checkedAt:catalog.checkedAt}:{source:'preset',complete:false},hasSecret:p.memberRef?true:await hasSecret('model.'+p.id,snapshot?.vault)||!!p.mergedCredentialId&&await hasSecret('model.'+p.mergedCredentialId,snapshot?.vault),credentialStorage:secure?'encrypted':desktop.decryptSecret?'encrypted-readonly':'session'};};
+ const exactTextCatalog=(p,catalog)=>catalog?.complete===true&&(authoritativeFreeCatalog(p,catalog)||
+  p.adapter==='api'&&['DeepSeek','OpenAI','自定义兼容接口'].includes(p.provider)&&catalog.source==='remote'||
+  p.agentEngine==='workbuddy'&&catalog.source==='desktop-cache'||
+  p.adapter==='cli'&&p.provider==='OpenAI'&&['codex-local-catalog','codex-images-api'].includes(catalog.source)&&catalog.completeChannels?.includes('text')!==false);
+ const textModelsFor=(p,catalog)=>{
+  const known=localModelCatalog(p), presets=new Map(known.map(item=>[item.id,item]));
+  const authoritative=exactTextCatalog(p,catalog);
+  const options=new Map(authoritative?[]:presets);
+  for(const remote of catalog?.models||[]){
+   if(!remote?.id)continue;
+   const preset=presets.get(remote.id);
+   const declared=gptCatalogChannels(remote);
+   const channels=declared.length?declared:preset?.channels?.length?preset.channels:p.channel==='text'?['text']:[];
+   options.set(remote.id,{...preset,...remote,label:remote.label||preset?.label||remote.id,channels});
+  }
+  return currentGptModels([...options.values()],p)
+   .filter(item=>item.available!==false&&item.selectable!==false&&item.channels.includes('text'))
+   .map(item=>({id:item.id,label:item.label||item.id,reasoningLevels:item.reasoningLevels||[],defaultReasoningLevel:item.defaultReasoningLevel||'',speedModes:item.speedModes||[]}));
+ };
+ const exactImageCatalog=(p,catalog)=>p.channel==='multimodal'&&profileSupports(p,'text')&&profileSupports(p,'image')&&catalog?.complete===true&&(
+  p.adapter==='api'&&['OpenAI','自定义兼容接口'].includes(p.provider)&&catalog.source==='remote'||
+  p.adapter==='cli'&&p.provider==='OpenAI'&&(catalog.source==='codex-images-api'||catalog.source==='codex-local-catalog'&&catalog.models.some(item=>gptCatalogChannels(item).includes('image')))
+ );
+ const publicProfile=async(p,snapshot)=>{p=unifiedCanvasProfile(p);const catalog=(snapshot?.catalogs||await catalogs.read())[catalogKey(p)],mediaModels=publicGenerationModels({...p,modelCatalogModels:catalog?.models,exactImageCatalog:exactImageCatalog(p,catalog)}),textModels=profileSupports(p,'text')?textModelsFor(p,catalog):[],speech=await speechMetadata(p);return {...p,enabled:p.enabled!==false&&await sourceActive(p),...(p.adapter==='browser'?{capabilities:{}}:p.channel==='image'?{capabilities:imageModelCapabilities(p.provider,p.model)}:p.channel==='video'?{capabilities:videoModelCapabilities(p.provider,p.model)}:{}),...(speech?{speechCapabilities:speech.capabilities}:{}),mediaModels,textModels,textModelCatalogExact:exactTextCatalog(p,catalog),modelCatalogStatus:catalog?{source:catalog.source,complete:catalog.complete,checkedAt:catalog.checkedAt}:{source:'preset',complete:false},hasSecret:p.memberRef?true:await hasSecret('model.'+p.id,snapshot?.vault)||!!p.mergedCredentialId&&await hasSecret('model.'+p.mergedCredentialId,snapshot?.vault),credentialStorage:secure?'encrypted':desktop.decryptSecret?'encrypted-readonly':'session'};};
  const list=async({includeManagedBindings=false}={})=>{await ensureCanvasAccounts();const [state,pool,localH3Visible,access,catalogSnapshot,vaultSnapshot]=await Promise.all([store.read(),browserPool(),activeSource('thirdparty.local-h3'),memberAccess(),catalogs.read(),vault.read()]);const snapshot={catalogs:catalogSnapshot,vault:vaultSnapshot};const {canvasAccountMigration,multimodalAccountMigration,profileAliases,...visibleState}=state;return {...visibleState,officialConfiguration:Object.fromEntries(['id','name','status','locked','entitled','message','enabled','credit','creditUpdatedAt'].map(key=>[key,access[key]])),profiles:await Promise.all([...state.profiles,...aliases(state)].filter(p=>includeManagedBindings||!pool||p.externalRef?.pluginId!=='thirdparty.doubao').concat(pool?[pool]:[]).filter(p=>(p.provider!=='本地 H3'||localH3Visible)&&(!p.memberRef||access.enabled&&memberActive(p,access))).map(p=>publicProfile(p,snapshot))),credentialStorage:secure?'encrypted':desktop.decryptSecret?'encrypted-readonly':'session',providers:PROVIDER_PRESETS.filter(p=>p.id!=='本地 H3'||localH3Visible).map(p=>({id:p.id,label:p.label,api:p.api,cli:p.cli,models:getProviderModelOptions(p.id)}))};};
  let browserRuntime,browserProfileResolver=async()=>{throw failure('浏览器配置授权接口尚未接入','BROWSER_PROFILE_UNAVAILABLE');};
  const ready=p=>p.enabled!==false&&!!p.model&&(p.adapter==='tts'?p.externalRef?.pluginId==='thirdparty.text-reader'&&!!p.externalRef.sourceId:p.adapter==='browser'?p.externalRef?.pluginId==='thirdparty.doubao'&&(!!p.externalRef.accountId||p.externalRef.accountPool===true):p.adapter==='cli'?!!p.cliPath:!!p.baseUrl);
@@ -75,7 +99,14 @@ export function createModelService({dataRoot,desktop={},consolidateLegacyAccount
   if(clean.browserProfileId)await browserProfileResolver(clean);
   if(clean.credentialPageUrl){let url;try{url=new URL(clean.credentialPageUrl);}catch{throw failure('凭证网页地址无效');}if(url.protocol!=='https:'||url.username||url.password||url.search||url.hash)throw failure('凭证网页地址应为不含授权参数的 HTTPS 页面');}
   // Keep the legacy field contract, but never seed profiles or inherit old credentials.
-  if(channels.includes('text')){clean.agentEngine??=clean.adapter==='browser'?'doubao_browser':clean.adapter==='api'?'codex_api':'codex';clean.agentPermissionMode??='shensi_only';if(!['codex_api','codex','opencode','deepseek_opencode','claude_code','workbuddy','custom','doubao_browser'].includes(clean.agentEngine)||!['shensi_only','approval_required','full_access'].includes(clean.agentPermissionMode))throw failure('运行器或权限模式无效');if((clean.agentEngine==='doubao_browser')!==(clean.adapter==='browser')||(clean.agentEngine==='codex_api')!==(clean.adapter==='api'))throw failure('运行器与连接类型不匹配');}
+  if(channels.includes('text')){
+   clean.agentEngine??=clean.adapter==='browser'?'doubao_browser':clean.adapter==='api'?'codex_api':'codex';
+   clean.agentPermissionMode??='shensi_only';
+   if(!['codex_api','codex','opencode','deepseek_opencode','claude_code','workbuddy','custom','doubao_browser'].includes(clean.agentEngine)||!['shensi_only','approval_required','full_access'].includes(clean.agentPermissionMode))throw failure('运行器或权限模式无效');
+   const deepSeekApi=clean.agentEngine==='deepseek_opencode'&&clean.adapter==='api';
+   if(deepSeekApi&&(clean.provider!=='DeepSeek'||channel!=='text'||!isOfficialDeepSeekEndpoint(clean.baseUrl)||clean.protocol!=='chat_completions'))throw failure('OpenCode + DeepSeek 需要使用 DeepSeek 官方 API 地址和 Chat Completions 协议');
+   if((clean.agentEngine==='doubao_browser')!==(clean.adapter==='browser')||(!deepSeekApi&&(clean.agentEngine==='codex_api')!==(clean.adapter==='api')))throw failure('运行器与连接类型不匹配');
+  }
   const normalized=createGenerationProfile(channel==='multimodal'?channels[0]:channel,{...clean,id});
   const profile={...Object.fromEntries(allowed.filter(k=>normalized[k]!==undefined).map(k=>[k,normalized[k]])),...clean,id,channel,...(externalOwner?{externalRef:{pluginId:externalOwner,...(clean.adapter==='browser'?{accountId:input.browserAccountId}:{} ),...(clean.adapter==='tts'?{sourceId:identity(input.speechSourceId)}:{})}}:{}),...(channel==='multimodal'?{channels,capabilityModels}:{}),updatedAt:new Date().toISOString()};
   if(clean.adapter==='browser')for(const key of ['baseUrl','cliPath','cliArgs','temperature','maxOutputTokens','resolution','aspectRatio','durationSeconds','voice'])delete profile[key];
@@ -89,11 +120,13 @@ export function createModelService({dataRoot,desktop={},consolidateLegacyAccount
   if(usesUnifiedCanvas(p)&&!canvasAccountId(p))throw failure('此即梦配置缺少原账号来源，请在模型设置中核验。','DREAMINA_CANVAS_PROFILE_REQUIRED');
   const browserSettings=p.adapter==='cli'&&p.browserProfileId?await browserProfileResolver(p):usesUnifiedCanvas(p)?await originalCanvasSource(p,dataRoot):{};
   if(!context.allowInactiveProvider)await assertAvailable(id);
-  const catalog=(await catalogs.read())[catalogKey(candidate)],catalogModels=catalog?.models,textModels=channel==='text'?textModelsFor(p,catalog):[],requestedModel=String(context.model||'').trim(),model=requestedModel||profileForChannel(p,channel).model;
-  if(retiredGptModel(model))throw failure('GPT 5.6 以下型号已从可选目录移除，请选择 GPT 5.6 或更新型号；原配置未替换，未发送生成请求','MODEL_RETIRED');
+  const catalog=(await catalogs.read())[catalogKey(candidate)],catalogModels=catalog?.models,textModels=channel==='text'?textModelsFor(candidate,catalog):[],requestedModel=String(context.model||'').trim(),model=requestedModel||profileForChannel(p,channel).model;
+  if(removedModel(model,p))throw failure('此型号已从可选目录移除，请在当前配置中重新选择模型','MODEL_RETIRED');
   if(channel==='text'&&authoritativeFreeCatalog(p,catalog)&&!textModels.some(item=>item.id===model))throw failure('此免费模型已不在最新免费目录中，请刷新目录并选择可用模型；未发送生成请求','MODEL_NO_LONGER_FREE_OR_AVAILABLE');
-  if(requestedModel&&!textModels.some(item=>item.id===requestedModel))throw failure('所选模型不在当前配置目录中','MODEL_SELECTION_INVALID');
-  const option=textModels.find(item=>item.id===model),requestedReasoning=String(context.reasoningEffort??'').trim(),requestedSpeed=String(context.speedMode??'').trim();
+  const option=findTextModel(p,textModels,model);
+  if(channel==='text'&&exactTextCatalog(candidate,catalog)&&!option)throw failure('此型号已不在当前配置的完整文字目录中，请重新选择；未改动保存的默认模型','MODEL_SELECTION_INVALID');
+  if(requestedModel&&!option)throw failure('所选模型不在当前配置目录中','MODEL_SELECTION_INVALID');
+  const requestedReasoning=String(context.reasoningEffort??'').trim(),requestedSpeed=String(context.speedMode??'').trim();
   const defaults=channel==='text'?textModelSelection({...p,textModels},{model}):{reasoningEffort:p.reasoningEffort||'',speedMode:p.speedMode||'default'};
   // An explicit automatic choice must stay automatic. Connection defaults only
   // apply when omitted, and only to capabilities declared by this text model.
@@ -103,14 +136,14 @@ export function createModelService({dataRoot,desktop={},consolidateLegacyAccount
   if(requestedSpeed&&requestedSpeed!=='default'&&option?.speedModes?.length&&!option.speedModes.includes(requestedSpeed))throw failure('所选模型不支持该响应速度','MODEL_SPEED_INVALID');
   const selection={model,reasoningEffort,speedMode};
   if(p.memberRef){if(!memberResolver)throw failure('会员凭据服务不可用');return {...p,...selection,connectionId:p.id,...await memberResolver(p,context)};}
-  return {...profileForChannel(p,channel),...selection,...browserSettings,modelCatalogModels:catalogModels,connectionId:p.id,apiKey:await secret('model.'+p.id)||p.mergedCredentialId&&await secret('model.'+p.mergedCredentialId)||''};
+  return {...profileForChannel(p,channel),...selection,...browserSettings,modelCatalogModels:catalogModels,exactImageCatalog:exactImageCatalog(candidate,catalog),connectionId:p.id,apiKey:await secret('model.'+p.id)||p.mergedCredentialId&&await secret('model.'+p.mergedCredentialId)||''};
  }
  async function provide(pluginId,{id,profile,apiKey,remove:erase=false}){identity(pluginId);identity(id);const key='external-'+createHash('sha256').update(pluginId+':'+id).digest('hex').slice(0,40),revision=(await store.read()).revision;if(erase){await remove({profileId:key,expectedRevision:revision},pluginId);return {id:key,removed:true};}if(!profile||typeof profile!=='object')throw failure('插件需要提供完整模型配置');await save({profile:{...profile,id:key},apiKey,expectedRevision:revision},pluginId);return {id:key};}
  async function installMemberProfiles(items){await store.update(s=>{for(const item of items){const old=s.profiles.find(p=>p.id===item.id);if(old&&!old.memberRef)throw failure('会员配置不能覆盖普通模型');const controls=Object.fromEntries(['name','enabled','speedMode','webSearchEnabled','reasoningEffort','temperature','maxOutputTokens','timeoutMs','aspectRatio','resolution','durationSeconds','voice','agentPermissionMode'].filter(k=>old?.[k]!==undefined).map(k=>[k,old[k]]));const p={...item.profile,...controls,id:item.id,adapter:'api',enabled:controls.enabled!==false,agentEngine:item.profile.channel==='text'?'codex_api':undefined,agentPermissionMode:controls.agentPermissionMode||'shensi_only',memberRef:structuredClone(item.memberRef),updatedAt:new Date().toISOString()};s.profiles=s.profiles.filter(p=>p.id!==item.id);s.profiles.push(p);}s.revision++;return s;});return list();}
  async function browserText(options){if(!browserRuntime)throw failure('网页执行器不可用');return browserRuntime(options);}
  async function authorizationSources(){return {externalBrowsers:await originalCanvasSources(dataRoot),...await externalBrowsers.list()};}
  async function text({profileId,messages,system,signal,cwd,requestId}){const settings=await resolve(profileId,'text',{signal});if(settings.adapter==='browser')return browserText({settings,messages,system,signal,requestId:requestId||'model-text-'+randomUUID()});const {runModelAdapter}=await import('./legacy/server/adapters.mjs');return runModelAdapter({settings,messages,system,signal,cwd});}
- async function test({profileId}){const p=await profileById(profileId);if(!p)throw failure('配置不存在');const settings=await resolve(profileId,profileSupports(p,'text')?'text':profileChannels(p)[0]);if(settings.adapter==='browser')return {ok:ready(settings),message:'账号绑定有效；请在豆包插件中明确试用，不会在连接检查中偷偷生成'};if(usesVideoApiReadiness(settings))return checkVideoApiReadiness(settings);if(!profileSupports(p,'text'))return {ok:ready(settings),message:'配置字段检查通过；媒体执行与计费验证未运行'};const {testModelAdapter}=await import('./legacy/server/adapters.mjs');return testModelAdapter({settings,cwd:dataRoot});}
+ async function test({profileId}){const p=await profileById(profileId);if(!p)throw failure('配置不存在');const settings=await resolve(profileId,profileSupports(p,'text')?'text':profileChannels(p)[0]);if(settings.adapter==='api'&&settings.agentEngine==='deepseek_opencode')return verifyDeepSeekApi(settings);if(settings.adapter==='browser')return {ok:ready(settings),message:'账号绑定有效；请在豆包插件中明确试用，不会在连接检查中偷偷生成'};if(usesVideoApiReadiness(settings))return checkVideoApiReadiness(settings);if(!profileSupports(p,'text'))return {ok:ready(settings),message:'配置字段检查通过；媒体执行与计费验证未运行'};const {testModelAdapter}=await import('./legacy/server/adapters.mjs');return testModelAdapter({settings,cwd:dataRoot});}
 
  async function catalog({profileId,profile:draft,apiKey,refresh=false}){
   const saved=profileId?await profileById(profileId):null;
@@ -123,8 +156,8 @@ export function createModelService({dataRoot,desktop={},consolidateLegacyAccount
   // Empty optional form controls and absent persisted fields describe the same
   // connection. Endpoint/provider/account changes must still withhold its key.
   const sameConnection=saved&&['adapter','baseUrl','provider','protocol','agentEngine','cliPath','model','dreaminaCanvasMode'].every(key=>(profile[key]??'')===(saved[key]??''))&&(profile.adapter!=='cli'||(profile.browserProfileId||'')===(saved.browserProfileId||'')&&(!!profile.browserProfileId||(profile.dreaminaCliProfile||'')===(saved.dreaminaCliProfile||'')));
-  if(refresh&&profile.adapter==='cli'){const result=currentGptCatalog(await cliModelCatalog(profile));if(sameConnection&&apiKey===undefined)await catalogs.update(state=>({...state,[catalogKey(saved)]:result}));return result;}
-  if(!refresh){const cached=sameConnection&&(await catalogs.read())[catalogKey(saved)];return cached?currentGptCatalog(cached):{models:localModelCatalog(profile),source:'preset',complete:false,message:'已知模型目录。读取连接目录可获得该接口返回的模型。'};}
+  if(refresh&&profile.adapter==='cli'){const result=currentGptCatalog(await cliModelCatalog(profile),profile);if(sameConnection&&apiKey===undefined)await catalogs.update(state=>({...state,[catalogKey(saved)]:result}));return result;}
+  if(!refresh){const cached=sameConnection&&(await catalogs.read())[catalogKey(saved)];return cached?currentGptCatalog(cached,profile):{models:localModelCatalog(profile),source:'preset',complete:false,message:'已知模型目录。读取连接目录可获得该接口返回的模型。'};}
   // Never send a saved credential to an edited endpoint or another provider.
   const key=apiKey||(sameConnection?await secret('model.'+saved.id)||saved.mergedCredentialId&&await secret('model.'+saved.mergedCredentialId)||'':'');
   const result=await fetchModelCatalog(profile,key);
