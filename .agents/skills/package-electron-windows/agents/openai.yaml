@@ -1,0 +1,6 @@
+interface:
+  display_name: "Electron Windows Packaging"
+  short_description: "Build Windows installer and portable releases"
+  default_prompt: "Use $package-electron-windows to build and publish Windows installer and portable packages for this Electron project."
+policy:
+  allow_implicit_invocation: true

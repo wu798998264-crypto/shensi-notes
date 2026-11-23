@@ -1,0 +1,6 @@
+interface:
+  display_name: "Electron macOS Packaging"
+  short_description: "Build Windows Electron apps as macOS DMG releases"
+  default_prompt: "Use $package-electron-macos to package this Windows Electron project into macOS DMG releases with GitHub Actions."
+policy:
+  allow_implicit_invocation: true
