@@ -1,0 +1,33 @@
+name: Deliver verified Shensi 0.0.53 Mac installers
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  transfer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Check source run and target draft
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api repos/wu798998264-crypto/shensi-mobile/actions/runs/45656957246 > source.json
+          jq -e '.conclusion == "success" and .head_sha == "d17b770f6828f78f9fe0b8a64ec172edfc2d965a"' source.json
+          gh release view v0.0.53 --repo wu798998264-crypto/shensi-notes --json isDraft --jq .isDraft | grep -qx true
+      - name: Transfer independently verified files
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir arm64 x64
+          gh api repos/wu798998264-crypto/shensi-mobile/actions/artifacts/15043901869/zip > arm64.zip
+          gh api repos/wu798998264-crypto/shensi-mobile/actions/artifacts/15046046804/zip > x64.zip
+          echo '8b49412e921bacc97e26b7ed5b941ed9b704581d0ab0772acbee2d831223438b  arm64.zip' | sha256sum -c -
+          echo 'e0383c0c70f6362f99ffe83d02eda8ba706dc3f4f19ffcd2d2e56c503832aa99  x64.zip' | sha256sum -c -
+          unzip -q arm64.zip -d arm64
+          unzip -q x64.zip -d x64
+          echo '6c8b7b52883b2b2a5ffbddf274582f6678bdf17715c6f242b4ce043d194aac2d  arm64/Shensi-0.0.53-arm64.dmg' | sha256sum -c -
+          echo 'db3413093b00adb8f99faa7dce65dd00d8024b39e244bbdc6fab532a43e91759  x64/Shensi-0.0.53-x64.dmg' | sha256sum -c -
+          gh release upload v0.0.53 arm64/Shensi-0.0.53-arm64.dmg x64/Shensi-0.0.53-x64.dmg --repo wu798998264-crypto/shensi-notes
