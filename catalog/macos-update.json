@@ -1,21 +1,21 @@
 {
   "appId": "shensi-notes",
-  "version": "0.0.54",
-  "buildId": "macos-45752149969",
+  "version": "0.0.55",
+  "buildId": "macos-45835418511",
   "downloads": [
     {
       "platform": "darwin",
       "arch": "arm64",
-      "url": "https://github.com/wu798998264-crypto/shensi-notes/releases/download/v0.0.54/Shensi-0.0.54-arm64.dmg",
-      "sha256": "945b89d6932be82a66237b737714d812bbf4acc90cc60562e71dc9f38dd38e26",
-      "sizeBytes": 494501954
+      "url": "https://github.com/wu798998264-crypto/shensi-notes/releases/download/v0.0.55/Shensi-0.0.55-arm64.dmg",
+      "sha256": "1f06351f441a3b485d67d77cf9fdbc7dccfdf5de101938afa3ca302ce042180e",
+      "sizeBytes": 494528305
     },
     {
       "platform": "darwin",
       "arch": "x64",
-      "url": "https://github.com/wu798998264-crypto/shensi-notes/releases/download/v0.0.54/Shensi-0.0.54-x64.dmg",
-      "sha256": "687e01f8dd57d46ce97949001e8f87c521270abfdc26a604dd62da03f732d918",
-      "sizeBytes": 526732223
+      "url": "https://github.com/wu798998264-crypto/shensi-notes/releases/download/v0.0.55/Shensi-0.0.55-x64.dmg",
+      "sha256": "28b90b647a04d340cc7df9c3c656bddb876881b35a07103b2df5683aae252d09",
+      "sizeBytes": 526754569
     }
   ]
 }
