@@ -1,29 +1,40 @@
-# shensi-notes
-神思笔记官方软件发布与更新仓库
+# 神思
 
-## Windows 与 macOS 0.0.42
+神思官方软件下载与更新仓库。
 
-两端统一使用“对话控制”，撤下“白板对话”和“文档对话”两个独立插件入口。
-保留原对话历史、草稿和配置；原默认模型设置集中到对话控制。
-Windows 安装器经过 124 项冻结回归与独立解包比对；本轮打包交付不覆盖本机正式安装。
+## 按设备下载
 
-GitHub Actions 原生构建 Apple Silicon（arm64）和 Intel（x64）版本。
-构建内容来自已发布、SHA-256 固定的 Windows 0.0.41 程序载荷，
-包含豆包 0.1.34 修复，并替换为对应 Mac 架构的 Node、FFmpeg、
-Java、Python、即梦画布 CLI 与 LibTV CLI。不包含开发机账号、笔记或 Cookie。
+**[打开最新桌面版下载表](https://github.com/wu798998264-crypto/shensi-notes/releases/latest)**，点击与你的电脑对应的下载按钮。下面的桌面入口始终指向最新正式版，具体版本和更新内容以发布页为准。
 
-工作流验证签名、DMG 完整性、实际应用启动、界面加载、文档保存回读、
-笔记本回收与恢复，以及内置运行库。本轮增加跨平台 SVG 图标、8 种主界面主题与 10 种浏览器主题实测、独立扩展安装和重启持久化、四角圆角 Dock 图标。全部通过后才发布 v0.0.42 DMG/ZIP；
-Windows 同步提供 0.0.42 安装器，全部制品与更新清单在同一 Release。
+| 你的设备 | 下载入口 | 应选择的安装包 |
+| --- | --- | --- |
+| Windows 电脑，Intel / AMD 64 位处理器 | [Windows 下载页](https://github.com/wu798998264-crypto/shensi-notes/releases/latest) | `Shensi-Setup-版本号-构建编号-x64.exe` |
+| Mac，Apple 芯片（M 系列） | [Apple 芯片 Mac 下载页](https://github.com/wu798998264-crypto/shensi-notes/releases/latest) | `Shensi-版本号-arm64.dmg` |
+| Mac，Intel 处理器 | [Intel Mac 下载页](https://github.com/wu798998264-crypto/shensi-notes/releases/latest) | `Shensi-版本号-x64.dmg` |
+| Android 手机 / 平板 | [已发布的 Android 测试版 0.0.13-test.13](https://github.com/wu798998264-crypto/shensi-notes-mobile/releases/tag/v0.0.13-test.13) | `.apk`；这是测试版，版本号与桌面端独立 |
+| iPhone / iPad | 暂未发布，待完成 Apple 签名 | 暂无可安装包 |
 
-平台边界：
+不确定 Mac 类型：点击左上角 **苹果菜单 → 关于本机**；“芯片”为 Apple M 系列就选 **arm64**，“处理器”为 Intel 就选 **x64**。Mac 安装包不能用于 iPhone 或 iPad。
 
-- 使用 ad-hoc 签名，尚无 Apple Developer ID 公证；首次打开可能需要在系统设置中允许。
-- Windows 专用的本地 SenseVoice 语音识别及 H3 辅助程序未提供 Mac 版本。
-- 提供 10 个 macOS 原生扩展独立签名包与日历通用包；安装前校验操作系统、宿主版本、文件摘要和签名。Mac 和 Windows 使用各自目录。
-- Windows 原生扩展 0.1.36，macOS 原生扩展 0.1.35，日历 1.0.5。独立安装包在 [公共扩展发布仓库](https://github.com/wu798998264-crypto/shensi-plugins/releases)，使用对应平台的版本。
-- Windows 专用 CosyVoice 模型环境不能直接用于 Mac；系统参考音色改用 macOS 自带声音，API 朗读仍需有效供应商配置。
-- Mac 账号需要在本机重新授权；云端构建不提交付费生成，不能替代账号和生成实测。
+Windows 可在 **设置 → 系统 → 系统信息（关于）→ 系统类型** 查看处理器类型；当前提供 Intel / AMD x64 安装包，暂无 Windows ARM 原生安装包。
 
-发布后在 [Releases](https://github.com/wu798998264-crypto/shensi-notes/releases/tag/v0.0.42)
-选择 Windows `Shensi-Setup-0.0.42-20261117084637890-x64.exe`、Apple Silicon `Shensi-0.0.42-arm64.dmg` 或 Intel `Shensi-0.0.42-x64.dmg`。
+## 扩展插件（可选）
+
+先安装主程序。需要独立扩展包时，在 [最新桌面版下载页](https://github.com/wu798998264-crypto/shensi-notes/releases/latest) 选择与你的系统和神思版本匹配的文件：
+
+| 使用平台 | 扩展插件合集 |
+| --- | --- |
+| Windows | `Shensi-版本号-Extensions-Windows.zip` |
+| macOS（Apple 芯片 / Intel） | `Shensi-版本号-Extensions-macOS.zip` |
+
+扩展插件 ZIP 不是主程序安装包；Windows 和 macOS 专用扩展不能交叉安装。单个扩展也可查看 [官方扩展插件发布页](https://github.com/wu798998264-crypto/shensi-plugins/releases)。
+
+## 哪些文件不用手动下载
+
+普通安装只需上表对应的 `.exe`、`.dmg` 或 Android `.apk`。
+
+- `shensi-notes-update.json`、`shensi-notes-macos-update.json` 和 `.blockmap`：供软件更新使用。
+- `SHA256SUMS*.txt`：文件完整性校验信息。
+- GitHub 自动生成的 `Source code (zip / tar.gz)`：源码归档，不是安装包。
+
+软件内仍可检查更新、手动下载并安装。当前版本的验证结果、已知限制及系统信任提示，请查看 [最新发布说明](https://github.com/wu798998264-crypto/shensi-notes/releases/latest)。
