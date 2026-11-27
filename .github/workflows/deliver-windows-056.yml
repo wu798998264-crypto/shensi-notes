@@ -1,0 +1,51 @@
+name: Deliver verified Shensi 0.0.56 Windows installer
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  transfer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Check target draft and download verified transport inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh release view v0.0.56 --repo wu798998264-crypto/shensi-notes --json isDraft --jq .isDraft | grep -qx true
+          gh release download v0.0.55 --repo wu798998264-crypto/shensi-notes --pattern Shensi-Setup-0.0.55-20261126134905827-x64.exe
+          gh release download v0.0.56 --repo wu798998264-crypto/shensi-notes --pattern Shensi-0.0.56-transfer.json.gz
+          echo 'e8007b2a687bcfd613aef8c90690b55d9430cb35bc76123de7a39caf9ca86725  Shensi-Setup-0.0.55-20261126134905827-x64.exe' | sha256sum -c -
+          echo 'ab0476df3f58c1c2d29327c94e4e2c147adb30fd2347df1f913be4912fef0c04  Shensi-0.0.56-transfer.json.gz' | sha256sum -c -
+      - name: Restore the byte-identical accepted installer
+        shell: python
+        run: |
+          import base64, gzip, hashlib, json, pathlib
+          old_name = 'Shensi-Setup-0.0.55-20261126134905827-x64.exe'
+          new_name = 'Shensi-Setup-0.0.56-20261127005611998-x64.exe'
+          old_hash = 'e8007b2a687bcfd613aef8c90690b55d9430cb35bc76123de7a39caf9ca86725'
+          new_hash = 'aaf2b23edebc2d13d805d72f4f7adab6556f1cae7b3edba94473e8a83bf2f03f'
+          m = json.loads(gzip.decompress(pathlib.Path('Shensi-0.0.56-transfer.json.gz').read_bytes()))
+          assert m['format'] == 'shensi-release-transfer-v1'
+          assert (m['baseName'], m['name'], m['baseSha256'], m['sha256'], m['size']) == (old_name, new_name, old_hash, new_hash, 377841928)
+          old = pathlib.Path(old_name).read_bytes()
+          assert hashlib.sha256(old).hexdigest() == old_hash
+          delta = base64.b64decode(m['data'], validate=True)
+          h, size = hashlib.sha256(), 0
+          with open(new_name, 'xb') as out:
+              for source, offset, length in m['spans']:
+                  assert source in (0, 1) and offset >= 0 and length > 0
+                  data = (old, delta)[source]
+                  assert offset + length <= len(data)
+                  part = data[offset:offset + length]
+                  out.write(part)
+                  h.update(part)
+                  size += length
+          assert size == m['size'] and h.hexdigest() == new_hash
+          print(f'PASS byte-identical installer: {size} bytes {h.hexdigest()}')
+      - name: Upload to the unpublished release
+        shell: bash
+        run: gh release upload v0.0.56 Shensi-Setup-0.0.56-20261127005611998-x64.exe --repo wu798998264-crypto/shensi-notes
+
