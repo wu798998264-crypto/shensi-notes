@@ -1,0 +1,38 @@
+name: Deliver verified Shensi 0.0.56 Mac installers
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  transfer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Check source run and target draft
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api repos/wu798998264-crypto/shensi-mobile/actions/runs/45921441888 > source.json
+          jq -e '.conclusion == "failure" and .head_sha == "4847ad5a1d21af9d03f0db92fb9ad2fb267274d6"' source.json
+          gh api repos/wu798998264-crypto/shensi-mobile/actions/runs/45921441888/jobs > jobs.json
+          jq -e '.jobs | length == 2' jobs.json
+          jq -e '.jobs[] | [.steps[] | select(.conclusion == "failure") | .name] == ["Verify real short-drama download and whiteboard handoff"]' jobs.json
+          jq -e '.jobs[] | [.steps[] | select(.name == "Build signed DMG and ZIP" or .name == "Verify actual macOS application" or .name == "Verify update recovery from the packaged application" or .name == "Verify text card exports and novel references") | .conclusion] == ["success", "success", "success", "success"]' jobs.json
+          gh release view v0.0.56 --repo wu798998264-crypto/shensi-notes --json isDraft --jq .isDraft | grep -qx true
+      - name: Transfer independently verified files
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir arm64 x64
+          gh api repos/wu798998264-crypto/shensi-mobile/actions/artifacts/15165190635/zip > arm64.zip
+          gh api repos/wu798998264-crypto/shensi-mobile/actions/artifacts/15165016511/zip > x64.zip
+          echo '3ba67d492142371601e0f58f616bda2695249e211c4f6dba484e458affd5e621  arm64.zip' | sha256sum -c -
+          echo '5598fa773b5971cbdb8f9d4672e2e677be7285f550a8cac18123a8197c3b6a3a  x64.zip' | sha256sum -c -
+          unzip -q arm64.zip -d arm64
+          unzip -q x64.zip -d x64
+          echo '27a6c8af98a0069655b5990dc38c13748fbda5a5fc63b32ccd5369f53ee94019  arm64/Shensi-0.0.56-arm64.dmg' | sha256sum -c -
+          echo '12ed542bec0edf2dcf9e5e00688cce6ce3fb5220c2516b2d9e7c00f1c4bf9991  x64/Shensi-0.0.56-x64.dmg' | sha256sum -c -
+          gh release upload v0.0.56 arm64/Shensi-0.0.56-arm64.dmg x64/Shensi-0.0.56-x64.dmg --repo wu798998264-crypto/shensi-notes
+
